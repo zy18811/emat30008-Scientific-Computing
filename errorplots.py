@@ -1,6 +1,7 @@
 from solve_ode import solve_ode
 from plot import plot
 import numpy as np
+import matplotlib.pyplot as plt
 
 
 def func(t,x):
@@ -18,23 +19,29 @@ def squaredError(true,est):
     return err**2
 
 
-t = np.linspace(0,1,100)
+def errorPlot(method, hvals, t,format,ax):
+    errArr = []
+    tArr = [0, t]
+    for h in hvals:
+        x_est = solve_ode(func,1,tArr,h,method)[-1]
+        x_true = getTrueValue(t)
+        err = squaredError(x_true,x_est)
+        errArr.append(err)
+    plot(hvals,errArr,ax,format)
 
 
-hArr = []
-errArrEul = []
-errArrRK4 = []
-for i in range(7):
-    h = 10**-i
-    print("h = %f" % h)
-    x1_est_eul = solve_ode(func,1,t,h,"euler")[-1]
-    x1_est_rk4 = solve_ode(func,1,t,h,"rk4")[-1]
-    x1_true = getTrueValue(1)
-    errEul = squaredError(x1_true,x1_est_eul)
-    errArrEul.append(errEul)
-    errEul = squaredError(x1_true, x1_est_rk4)
-    errArrRK4.append(errEul)
-    hArr.append(h)
+def main():
+    h_vals = np.linspace(1,0.000000001,1000)
+    
+    fig = plt.figure()
+    ax = fig.add_subplot(1, 1, 1)
+   # errorPlot("euler",h_vals,1,"loglog",ax)
+    errorPlot("rk4",h_vals,1,"loglog",ax)
+    plt.show()
 
 
-plot(hArr,errArrEul)
+if __name__ == "__main__":
+   main()
+
+
+
