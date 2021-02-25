@@ -30,17 +30,43 @@ def solve_ode(f,x0,t,hmax):
 
 
 def func(t,x):
-    dydx = -0.3*x
-    return dydx
+    dxdt = x
+    return dxdt
+
+
+def getTrueValue(t):
+    x = np.exp(t)
+    return x
+
+
+def squaredError(true,est):
+    err = true-est
+    return err**2
 
 
 t = np.linspace(0,50,200)
 
-sol = solve_ode(func,1,t,0.1)
+#sol = solve_ode(func,1,t,0.0001)
 
-#true_sol = odeint(func,1,sol[0], tfirst=True)
 
-plt.plot(t,sol)
+
+h = 0.0001
+errArr = []
+hArr = []
+while h < 0.1:
+    true = getTrueValue(t)[-1]
+    est = solve_ode(func,1,t,h)[-1]
+    err = squaredError(true,est)
+    errArr.append(err)
+    hArr.append(h)
+    h+=0.0001
+
+plt.plot(hArr,errArr)
+
+
+#plt.plot(t,true_vals)
+
+#plt.plot(t,sol)
 
 
 plt.show()
