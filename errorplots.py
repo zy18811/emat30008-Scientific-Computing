@@ -2,6 +2,7 @@ from solve_ode import solve_ode
 from plot import plot
 import numpy as np
 import matplotlib.pyplot as plt
+import sys
 
 
 def func(t,x):
@@ -20,26 +21,26 @@ def error(true,est):
 
 
 def errorPlot(method, hvals, t,format,ax):
-    errArr = []
+    x_true = getTrueValue(t)
+    errArr=[]
     tArr = np.linspace(0,t,100)
     for h in hvals:
-        x_est = solve_ode(func,1,tArr,method,h)[-1]
-        x_true = getTrueValue(t)
-        err = abs(x_est-x_true)
+        x_est = solve_ode(func,1,tArr,method,h)
+        err = error(x_true,x_est)
         errArr.append(err)
-    plot(hvals,errArr,ax,format)
+    if format == "linear":
+        ax.plot(hvals,errArr)
+    elif format == "loglog":
+        ax.loglog(hvals,errArr)
+    else:
+        sys.exit("Format: \"%s\" is not valid. Please select a valid format for plotting." % format)
+
 
 
 
 def main():
-    #h_vals = np.linspace(5,0.0000001,100)
-    h_vals = np.linspace(1,0.000001,1000)
-    fig = plt.figure()
-    ax = fig.add_subplot(1, 1, 1)
-    errorPlot("euler",h_vals,1,"loglog",ax)
-    errorPlot("rk4",h_vals,1,"loglog",ax)
-    ax.legend(["Euler","RK4"])
-    plt.show()
+    hvals = np.linspace(1,0.00001,1000)
+    errorPlot("euler",hvals,1,"loglog",ax)
 
 
 if __name__ == "__main__":

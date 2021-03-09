@@ -1,5 +1,4 @@
 import sys
-import math
 
 
 def euler_step(f, x1, t1, h):
@@ -26,20 +25,20 @@ def solve_to(step,f,x1,t1,t2,hmax):
     return x1
 
 
-
-
 def solve_ode(f,x0,tArr,method,hmax):
     if method == "euler":
-        method = euler_step
+        step = euler_step
     elif method == "rk4":
-        method = rk4_step
+        step = rk4_step
     else:
+        sys.exit("Method: \"%s\" is not valid. Please select a valid method" % method)
+    x_sol = [x0]
+    for i in range(len(tArr)-1):
+        xi = solve_to(step,f,x_sol[i],tArr[i],tArr[i+1],hmax)
+        x_sol.append(xi)
+    return x_sol
 
 
-def func(t,x):
-    dxdt = x
-    return dxdt
 
 
-x = solve_to(euler_step,func,1,0,1,0.01)
-print(x)
+
