@@ -18,27 +18,13 @@ def rk4_step(f, x1, t1, h):
     return t2, x2
 
 
-def solve_to(step, f, x1, t1, t2, hmax):
-    while t1<t2:
+def solve_to(step,f,x1,t1,t2,hmax):
+    numSteps = math.floor((t2-t1)/hmax)
+    for i in range(numSteps):
         t1,x1 = step(f,x1,t1,hmax)
-    else:
-        t1-=hmax
-        t1,x1 = step(f,x1,t1,t2-t1)
+    t1,x1 = step(f,x1,t1,t2-t1)
     return x1
 
 
-def solve_ode(f, x0, t, hmax, method):
-    if method == "rk4":
-        step = rk4_step
-    elif method == "euler":
-        step = euler_step
-    else:
-        sys.exit("Method: \"%s\" is not valid. Please select a valid method" % method)
-    x_sol = []
-    for i in range(len(t) - 1):
-        x_sol.append(x0)
-        x0 = solve_to(step, f, x0, t[i], t[i + 1], hmax)
-    x_sol.append(x0)
-    return x_sol
-
-
+def solve_ode(f,x0,t,method,hmax):
+    pass
