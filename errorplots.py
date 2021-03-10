@@ -1,7 +1,10 @@
 from solve_ode import solve_ode
-from plot import plot
+from plotter import plotter
 import numpy as np
 import matplotlib.pyplot as plt
+from multiprocessing import Pool, cpu_count
+from tqdm import tqdm
+from timeit import default_timer as timer
 import sys
 
 
@@ -20,27 +23,41 @@ def error(true,est):
     return abs(err)
 
 
-def errorPlot(method, hvals, t,format,ax):
+def errForH(method,h,t):
+    tArr = np.linspace(0, t, 10)
+    x_est = solve_ode(func,1,tArr,method,h)[-1]
     x_true = getTrueValue(t)
-    errArr=[]
-    tArr = np.linspace(0,t,100)
-    for h in hvals:
-        x_est = solve_ode(func,1,tArr,method,h)
-        err = error(x_true,x_est)
-        errArr.append(err)
-    if format == "linear":
-        ax.plot(hvals,errArr)
-    elif format == "loglog":
-        ax.loglog(hvals,errArr)
-    else:
-        sys.exit("Format: \"%s\" is not valid. Please select a valid format for plotting." % format)
+    err = error(x_true,x_est)
+    return err
 
 
+def errForHWrapper(args):
+    return errForH(*args)
+
+
+def errorPlot(method, hvals, t,format,ax):
+
+    args = [(method,h,t) for h in hvals]
+
+    start = timer()
+    threads = cpu_count() - 1
+    with Pool(threads) as p:
+        errArr = list(tqdm(p.imap(errForHWrapper,args),total = len(args),desc = "%s" % method))
+    end = timer()
+    print("Time taken for %s = %f sec" % (method,end-start))
+    plotter(hvals,errArr,ax,format,method)
 
 
 def main():
-    hvals = np.linspace(1,0.00001,1000)
+    fig = plt.figure()
+    ax = fig.add_subplot(1, 1, 1)
+    hvals = np.logspace(1,-4,100)
     errorPlot("euler",hvals,1,"loglog",ax)
+    errorPlot("rk4",hvals,1,"loglog",ax)
+    plt.xlabel("h")
+    plt.ylabel("Error")
+    ax.legend()
+    plt.show()
 
 
 if __name__ == "__main__":
