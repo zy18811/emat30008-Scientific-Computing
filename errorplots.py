@@ -1,7 +1,11 @@
 from solve_ode import solve_ode
-from plot import plot
+from plotter import plotter
 import numpy as np
 import matplotlib.pyplot as plt
+from multiprocessing import Pool, cpu_count
+from tqdm import tqdm
+from timeit import default_timer as timer
+import sys
 
 
 def func(t,x):
@@ -19,25 +23,40 @@ def error(true,est):
     return abs(err)
 
 
+def errForH(method,h,t):
+    tArr = np.linspace(0, t, 10)
+    x_est = solve_ode(func,1,tArr,method,h)[-1]
+    x_true = getTrueValue(t)
+    err = error(x_true,x_est)
+    return err
+
+
+def errForHWrapper(args):
+    return errForH(*args)
+
+
 def errorPlot(method, hvals, t,format,ax):
-    errArr = []
-    tArr = np.linspace(0,t,1000)
-    for h in hvals:
-        x_est = solve_ode(func,1,tArr,h,method)[-1]
-        x_true = getTrueValue(t)
-        err = abs(x_est-x_true)
-        errArr.append(err)
-    plot(hvals,errArr,ax,format)
+
+    args = [(method,h,t) for h in hvals]
+
+    start = timer()
+    threads = cpu_count() - 1
+    with Pool(threads) as p:
+        errArr = list(tqdm(p.imap(errForHWrapper,args),total = len(args),desc = "%s" % method))
+    end = timer()
+    print("Time taken for %s = %f sec" % (method,end-start))
+    plotter(hvals,errArr,ax,format,method)
 
 
 def main():
-    #h_vals = np.linspace(5,0.0000001,100)
-    h_vals = np.linspace(0.1,0.0001,20)
     fig = plt.figure()
     ax = fig.add_subplot(1, 1, 1)
-    errorPlot("euler",h_vals,1,"loglog",ax)
-    errorPlot("rk4",h_vals,1,"loglog",ax)
-    plt.legend(["Euler","RK4"])
+    hvals = np.logspace(1,-4,100)
+    errorPlot("euler",hvals,1,"loglog",ax)
+    errorPlot("rk4",hvals,1,"loglog",ax)
+    plt.xlabel("h")
+    plt.ylabel("Error")
+    ax.legend()
     plt.show()
 
 

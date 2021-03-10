@@ -1,11 +1,10 @@
-import matplotlib.pyplot as plt
 import sys
 
-def plot(x,y,ax,format):
+def plotter(x,y,ax,format,label):
     if format == "loglog":
-        ax.loglog(x, y)
+        ax.loglog(x, y,label=label)
     elif format == "linear":
-        ax.plot(x,y)
+        ax.plot(x,y,label=label)
     else:
         sys.exit("format: \"%s\" invalid. Please input a valid format." % format)
 
