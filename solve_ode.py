@@ -51,6 +51,3 @@ def solve_ode(f,x0,tArr,method,hmax,system = False):
     else:
         return sol
 
-
-
-
