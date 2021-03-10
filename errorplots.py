@@ -51,7 +51,7 @@ def errorListforH(method, hvals, t):
 def main():
     fig = plt.figure()
     ax = fig.add_subplot(1, 1, 1)
-    hvals = np.logspace(1,-6,100)
+    hvals = np.logspace(1,-5,100)
     eulErrs = errorListforH("euler",hvals,1)
     rk4Errs = errorListforH("rk4",hvals,1)
     plotter(hvals,eulErrs,ax,"loglog","Euler")
