@@ -35,13 +35,38 @@ def solve_ode(f,x0,tArr,method,hmax):
         step = rk4_step
     else:
         sys.exit("Method: \"%s\" is not valid. Please select a valid method" % method)
-    x_sol = np.empty(shape = (len(tArr),1))
-    x_sol[0] = x0
+    sol = np.empty(shape = (len(tArr),len(x0)))
+    sol[0] = x0
     for i in range(len(tArr)-1):
-        xi = solve_to(step,f,x_sol[i],tArr[i],tArr[i+1],hmax)
-        x_sol[i+1] = xi
-    return x_sol
+        xi = solve_to(step,f,sol[i],tArr[i],tArr[i+1],hmax)
+        sol[i+1] = xi
+    outputSol = np.empty(shape = (len(x0),len(tArr)))
+    for i in range(len(x0)):
+        outputSol[i] = [item[i] for item in sol]
+    return outputSol
 
 
+def f(t,y):
+    return np.array([y[1],-y[0]])
+
+def func(t,x):
+    dxdt = x
+    return dxdt
 
 
+t = np.linspace(0,10,100)
+sol = solve_ode(func,[1],t,"rk4",0.01)
+'''
+x = []
+y = []
+for item in sol:
+    x.append(item[0])
+    y.append(item[1])
+'''
+x = sol[0]
+#y = sol[1]
+x_true = np.sin(t)
+y_true = np.cos(t)
+plt.plot(t,x)
+#plt.plot(t,y_true)
+plt.show()
