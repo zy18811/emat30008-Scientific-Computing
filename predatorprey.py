@@ -2,7 +2,8 @@ from solve_ode import solve_ode
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.optimize import fsolve
-
+from newtonrhapson import newtonIter
+from newtonrhapson import newton
 
 
 def func(t,y):
@@ -91,13 +92,27 @@ plt.plot(t,yeul,label = "y")
 plt.show()
 '''
 
+args = (f,pc)
+newt = newton(G,np.array([0.1,0.18,20]),args = args)
+print(newt)
+print(fsolve(G,np.array([0.1,0.18,20]),args = args))
+
+
+
+'''
 
 t = np.linspace(0,1000,10000)
 eulsol = solve_ode(func,np.array([0.25,0.25]),t,"rk4",0.001,system=True)
 xeul = eulsol[0]
 yeul = eulsol[1]
 
-#print(fsolve(G,np.array([1,1,10]),args = (f,pc)))
+#print(fsolve(G,np.array([0.1,0.18,20]),args = (f,pc)))
+
+
+
+
+
+
 x_period = periodID(t,xeul,dp = 5)
 xval = x_period[0]
 T = x_period[1]
@@ -120,8 +135,7 @@ yval_next = yeul[xval_t_i_next]
 
 print(xval)
 print(yval)
-print(xval_next)
-print(yval_next)
+print(T)
 
 
 
@@ -130,3 +144,4 @@ plt.plot(xeul,yeul,label = "x")
 plt.plot(xval,yval,'r+')
 #plt.plot(xval_next,yval_next,'bx')
 plt.show()
+'''
