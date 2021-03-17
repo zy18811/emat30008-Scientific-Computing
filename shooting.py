@@ -45,9 +45,13 @@ def func(t,y):
     dydt = b*y*(1-(y/x))
     return np.array([dxdt,dydt])
 
-x0 = np.array([0.5,0.5,15])
-print(orbitShooting(func,x0,pc))
+def main():
+    x0 = np.array([0.5,0.5,15])
+    print(orbitShooting(func,x0,pc))
 
+
+if __name__ == "__main__":
+    main()
 
 
 
