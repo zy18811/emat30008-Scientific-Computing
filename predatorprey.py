@@ -11,7 +11,7 @@ def func(t,y):
     y = y[1]
     a = 1
     d = 0.1
-    b = 0.25
+    b = 0.16
     dxdt = x*(1-x) - (a*x*y)/(d+x)
     dydt = b*y*(1-(y/x))
     return np.array([dxdt,dydt])
@@ -53,10 +53,10 @@ def pc(u0):
 x0 = np.array([0.5,0.5,15])
 
 args = (f,pc)
-newt = newton(G,x0,args = args)
+newt = newton(G,x0,pc)
 print(f"newt ={newt}")
 
-fsolve = fsolve(G,x0,args = args)
+fsolve = fsolve(G,x0,args = (pc,))
 print(f"fsolve = {fsolve}")
 
 
