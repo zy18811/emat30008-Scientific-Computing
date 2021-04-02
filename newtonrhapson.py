@@ -13,7 +13,9 @@ def approxJ(f,x,pc,dx = 1e-8):
 
 
 def newtonIter(f,x0,pc):
+
     J = approxJ(f,x0,pc)
+    #print(J)
     #invJ = np.linalg.inv(J)
     #x1 = x0 - np.matmul(invJ,f(x0,pc))
     x1_minus_x0 = np.linalg.solve(J,-f(x0,pc))
@@ -23,13 +25,11 @@ def newtonIter(f,x0,pc):
 
 def newton(f,x0,pc):
     while True:
-        x0 = newtonIter(f,x0,pc)
-
-        check = f(x0,pc)
+        check = f(x0, pc)
         zero = np.zeros(np.shape(check))
-
-        if np.allclose(check,zero):
+        if np.allclose(check, zero):
             break
+        x0 = newtonIter(f,x0,pc)
     return x0
 
 

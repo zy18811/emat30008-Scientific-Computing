@@ -1,10 +1,12 @@
 from newtonrhapson import newton
 from solve_ode import solve_ode
 import numpy as np
+from scipy.optimize import fsolve
 
 
 def orbitShooting(ode,u0,pc):
     def F(u0,T):
+
         tArr = np.linspace(0, T, 1000)
         sol = solve_ode(ode, u0, tArr, "rk4", 0.01, system=True)
         return np.array([sol[0][-1], sol[1][-1]])
@@ -20,12 +22,16 @@ def orbitShooting(ode,u0,pc):
         p = pc(u0)
         ret = [g[i] for i in range(len(g))]
         ret.append(p)
+
         return np.array(ret)
+
     newt = newton(G,u0,pc)
+    #newt = fsolve(G, u0, args=(pc,))
     return newt
 
 
 def pc(u0):
+    print("hi")
     x = u0[0]
     y = u0[1]
     a = 1
