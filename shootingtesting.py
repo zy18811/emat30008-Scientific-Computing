@@ -13,7 +13,7 @@ def shootingValueTest(func,u0,pc,explicit,testlabel = ""):
     if np.allclose(shoot,true):
         print(f"{testlabel+':' if testlabel != '' else ''} Successful")
     else:
-        print(f"{testlabel} Failed")
+        print(f"{testlabel+':' if testlabel != '' else ''} Failed")
 
     t = np.linspace(0, 100, 1000)
     xSol,ySol = explicit(1,T,t)
@@ -50,10 +50,31 @@ def pcHopfNormal(u0):
     return p
 
 
+def test2(t,u):
+    x = u[0]
+    y = u[1]
+    dxdt = y
+    dydt = -x
+    return np.array([dxdt,dydt])
+
+
+def pc_test2(u0):
+    return u0[0] - 1
+
+
+def test2_explicit(beta,phase,t):
+    x = np.sin(t) + np.cos(t)
+    y = np.cos(t) - np.sin(t)
+    return x,y
+
+
+
 def main():
     u0_hopfNormal = np.array([0.9,0.1,6])
     shootingValueTest(hopfNormal,u0_hopfNormal,pcHopfNormal,hopfNormalExplicit,testlabel="Hopf bifurcation normal form")
 
+    u0_test2 = np.array([1,1,2*np.pi])
+    shootingValueTest(test2,u0_test2,pc_test2,test2_explicit,testlabel="Test 2")
 
 
 if __name__ == "__main__":
