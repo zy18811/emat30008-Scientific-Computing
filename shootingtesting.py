@@ -35,7 +35,6 @@ def hopfNormal(t,u):
 
     du1dt = beta*u1 - u2 + sigma*u1*(u1**2+u2**2)
     du2dt = u1 + beta*u2 + sigma*u2*(u1**2+u2**2)
-    #print(du1dt,du2dt)
     return np.array([du1dt,du2dt])
 
 
