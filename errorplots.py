@@ -13,8 +13,6 @@ def func(t,x):
     return dxdt
 
 
-
-
 def getTrueValue(t):
     x = np.exp(t)
     return x
