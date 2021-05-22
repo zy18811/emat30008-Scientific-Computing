@@ -1,8 +1,28 @@
 from solve_ode import solve_ode
-from shooting import orbitShooting
+from shooting import orbitShooting,shootingG
 import numpy as np
 import matplotlib.pyplot as plt
 from tqdm import tqdm
+from scipy.optimize import fsolve
+from newtonrhapson import newton
+
+
+def nat_param_continuation(function, u0, pars, vary_par, vary_par_range,vary_par_number = 100, discretisation = shootingG,solver = fsolve,pc = None):
+
+    parArr = np.linspace(vary_par_range[0],vary_par_range[1],vary_par_number)
+
+    def solWrapper(val,pc):
+        pars[vary_par] = val
+        if pc is None:
+            return np.array(solver(discretisation(function), u0, args=(pars)))
+        else:
+            return np.array(solver(discretisation(function), u0, args=(pc,pars)))
+
+    sols = np.array([solWrapper(val,pc) for val in tqdm(parArr)])
+    Xs = sols[:, 0]
+    plt.plot(parArr, Xs)
+    plt.show()
+
 
 def hopfNormal(t,u,args):
     beta = args[0]
@@ -20,29 +40,13 @@ def pcHopfNormal(u0,args):
     return p
 
 
-betaValues = np.linspace(0,2,1000)
+betaValues = np.linspace(2,0,30)
 
 u0_hopfNormal = np.array([0.9,0.1,6])
 
-sols = []
-for val in tqdm(betaValues):
-    beta = val
-    xshoot, yshoot, T = orbitShooting(hopfNormal,u0_hopfNormal,pcHopfNormal,[beta,-1])
-    u0_hopfNormal = np.array([xshoot,yshoot,T])
-    sols.append(u0_hopfNormal)
-    #print(f"Done Beta = {val}")
+def function(x,c):
+    return x**3 - x + c
 
 
-sols = np.array(sols)
-Xs = [item[0] for item in sols]
-Ys = [item[1] for item in sols]
-Ts = [item[2] for item in sols]
-
-plt.plot(betaValues,Ts)
-plt.show()
-
-plt.plot(betaValues,Xs)
-plt.show()
-
-plt.plot(betaValues,Ys)
-plt.show()
+nat_param_continuation(hopfNormal,u0_hopfNormal,[2, -1],0,[2,0],30,shootingG,fsolve,pcHopfNormal)
+nat_param_continuation(function,[1,1,1],[-2],0,[-2,2],30,discretisation= lambda x:x,solver=fsolve,pc=None)
