@@ -4,12 +4,10 @@ import numpy as np
 from scipy.optimize import fsolve
 
 
-
 def orbitShooting(ode,u0,pc,solver = fsolve,*args):
     G = shootingG(ode)
-    #newt = newton(G,u0,pc)
-    newt = solver(G, u0, args=(pc,*args))
-    return newt
+    orbit = solver(G, u0, args=(pc,*args))
+    return orbit
 
 
 def shootingG(ode):
@@ -17,18 +15,11 @@ def shootingG(ode):
         def F(u0, T):
             tArr = np.linspace(0, T, 1000)
             sol = solve_ode(ode, u0, tArr, "rk4", 0.01, True, *args)
-            return np.array([sol[0][-1], sol[1][-1]])
-        k = len(x)-1
+            return sol[:,-1]
         T = x[-1]
-        u0 = x[0:k]
-        sol = F(u0,T)
-        g = np.empty(np.shape(u0))
-        for i in range(np.shape(u0)[0]):
-            g[i] = u0[i] - sol[i]
-        p = pc(u0,*args)
-        ret = [g[i] for i in range(len(g))]
-        ret.append(p)
-        return np.array(ret)
+        u0 = x[:-1]
+        g = np.append(u0 - F(u0, T), pc(u0, *args))
+        return g
     return G
 
 
@@ -52,6 +43,7 @@ def func(t,y):
     dxdt = x*(1-x) - (a*x*y)/(d+x)
     dydt = b*y*(1-(y/x))
     return np.array([dxdt,dydt])
+
 
 def main():
     x0 = np.array([0.5,0.5,15])

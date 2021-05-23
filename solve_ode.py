@@ -47,9 +47,9 @@ def solve_ode(f,x0,tArr,method,hmax,system = False,*args):
         outputSol = np.empty(shape = (len(x0),len(tArr)))
         for i in range(len(x0)):
             outputSol[i] = [item[i] for item in sol]
-        return outputSol
+        return np.array(outputSol)
     else:
-        return sol
+        return np.array(sol)
 
 if __name__ == '__main__':
     def func(t, x,args):
