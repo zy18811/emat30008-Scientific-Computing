@@ -4,6 +4,7 @@ import numpy as np
 from scipy.optimize import fsolve
 
 
+
 def orbitShooting(ode,u0,pc,solver = fsolve,*args):
     G = shootingG(ode)
     orbit = solver(G, u0, args=(pc,*args))

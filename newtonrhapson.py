@@ -1,5 +1,6 @@
 import numpy as np
 import sys
+from scipy.linalg import solve
 
 def approxJ(f,x,dx = 1e-8,*args):
     n = len(x)
@@ -15,7 +16,7 @@ def approxJ(f,x,dx = 1e-8,*args):
 def newtonIter(f,x0,*args):
     J = approxJ(f,x0,1e-8,*args)
     try:
-        x1_minus_x0 = np.linalg.solve(J,-f(x0,*args))
+        x1_minus_x0 = solve(J,-f(x0,*args))
     except np.linalg.LinAlgError:
         sys.exit(f"Singular Jacobian --> Initial guess has caused solution to diverge.\n"
                  "Please try again with a different initial guess.")
