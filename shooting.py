@@ -4,30 +4,24 @@ import numpy as np
 from scipy.optimize import fsolve
 
 
-def orbitShooting(ode,u0,pc):
-    def F(u0,T):
 
-        tArr = np.linspace(0, T, 1000)
-        sol = solve_ode(ode, u0, tArr, "rk4", 0.01, system=True)
-        return np.array([sol[0][-1], sol[1][-1]])
+def orbitShooting(ode,u0,pc,solver = fsolve,*args):
+    G = shootingG(ode)
+    orbit = solver(G, u0, args=(pc,*args))
+    return orbit
 
-    def G(x,pc):
-        k = len(x)-1
+
+def shootingG(ode):
+    def G(x,pc,*args):
+        def F(u0, T):
+            tArr = np.linspace(0, T, 1000)
+            sol = solve_ode(ode, u0, tArr, "rk4", 0.01, True, *args)
+            return sol[:,-1]
         T = x[-1]
-        u0 = x[0:k]
-        sol = F(u0,T)
-        g = np.empty(np.shape(u0))
-        for i in range(np.shape(u0)[0]):
-            g[i] = u0[i] - sol[i]
-        p = pc(u0)
-        ret = [g[i] for i in range(len(g))]
-        ret.append(p)
-
-        return np.array(ret)
-
-    newt = newton(G,u0,pc)
-    #newt = fsolve(G, u0, args=(pc,))
-    return newt
+        u0 = x[:-1]
+        g = np.append(u0 - F(u0, T), pc(u0, *args))
+        return g
+    return G
 
 
 def pc(u0):
@@ -50,6 +44,7 @@ def func(t,y):
     dxdt = x*(1-x) - (a*x*y)/(d+x)
     dydt = b*y*(1-(y/x))
     return np.array([dxdt,dydt])
+
 
 def main():
     x0 = np.array([0.5,0.5,15])

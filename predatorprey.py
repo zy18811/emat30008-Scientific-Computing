@@ -6,12 +6,14 @@ from newtonrhapson import newton
 from periodfinderforcheck import xvalyval
 from shooting import orbitShooting
 
-def func(t,y):
+def func(t,y,args):
     x = y[0]
     y = y[1]
-    a = 1
-    d = 0.1
-    b = 0.16
+
+    a = args[0]
+    d = args[1]
+    b = args[2]
+
     dxdt = x*(1-x) - (a*x*y)/(d+x)
     dydt = b*y*(1-(y/x))
     return np.array([dxdt,dydt])
@@ -36,16 +38,16 @@ def G(x,*args): # x = [u0,T], args = (f,phase)
 
 def f(u0,T):
     tArr = np.linspace(0,T,1000)
-    sol = solve_ode(func, u0, tArr, "rk4",0.01,system=True)
+    sol = solve_ode(func, u0, tArr, "rk4",0.01,True,[1,0.1,0.16])
     return np.array([sol[0][-1],sol[1][-1]])
 
 
-def pc(u0):
+def pc(u0,args):
     x = u0[0]
     y = u0[1]
-    a = 1
-    d = 0.1
-    b = 0.1
+    a = args[0]
+    d = args[1]
+    b = args[2]
     p = x*(1-x) - (a*x*y)/(d+x)
     return p
 
@@ -62,7 +64,7 @@ print(f"fsolve = {fsolve}")
 '''
 
 t = np.linspace(0,1000,10000)
-eulsol = solve_ode(func,np.array([0.25,0.25]),t,"rk4",0.001,system=True)
+eulsol = solve_ode(func,np.array([0.25,0.25]),t,"rk4",0.001,True,[1,0.1,0.16])
 xeul = eulsol[0]
 yeul = eulsol[1]
 
@@ -82,8 +84,8 @@ xval_find = valFind[0]
 yval_find = valFind[1]
 '''
 
-fsolve = fsolve(G,x0,args = (f,pc))
-orbit = orbitShooting(func,x0,pc)
+#fsolve = fsolve(G,x0,args = (f,pc))
+orbit = orbitShooting(func,x0,pc,fsolve,[1,0.1,0.16])
 print(fsolve)
 print(orbit)
 plt.plot(orbit[0],orbit[1],'r+')

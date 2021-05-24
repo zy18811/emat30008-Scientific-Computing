@@ -8,13 +8,15 @@ from timeit import default_timer as timer
 import sys
 
 
-def func(t,x):
-    dxdt = x
+def func(t,x,*args):
+    a = args
+    dxdt = a*x
     return dxdt
 
 
 def getTrueValue(t):
-    x = np.exp(t)
+    a = 1
+    x = np.exp(a*t)
     return x
 
 
@@ -25,7 +27,7 @@ def error(true,est):
 
 def errForH(method,h,t):
     tArr = np.linspace(0, t, 10)
-    x_est = solve_ode(func,1,tArr,method,h)[-1]
+    x_est = solve_ode(func,1,tArr,method,h,2)[-1]
     x_true = getTrueValue(t)
     err = error(x_true,x_est)
     return err
