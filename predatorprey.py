@@ -3,10 +3,11 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.optimize import fsolve
 from newtonrhapson import newton
-from periodfinderforcheck import xvalyval
+from periodfinderforcheck import manual_period_finder
 from shooting import orbitShooting
 
-def func(t,y,args):
+def predator_prey(t,y,args):
+
     x = y[0]
     y = y[1]
 
@@ -19,57 +20,24 @@ def func(t,y,args):
     return np.array([dxdt,dydt])
 
 
-def G(x,*args): # x = [u0,T], args = (f,phase)
-    u01 = x[0]
-    u02 = x[1]
-    T = x[2]
-    u0 = [u01,u02]
-    f = args[0]
-    phase = args[1]
-
-    sol = f(u0,T)
-
-    g = [u0[0]-sol[0],u0[1]-sol[1]]
-
-    p = phase(u0)
-    return np.array([g[0],g[1],p])
-
-
-
-def f(u0,T):
-    tArr = np.linspace(0,T,1000)
-    sol = solve_ode(func, u0, tArr, "rk4",0.01,True,[1,0.1,0.16])
-    return np.array([sol[0][-1],sol[1][-1]])
-
-
 def pc(u0,args):
-    x = u0[0]
-    y = u0[1]
-    a = args[0]
-    d = args[1]
-    b = args[2]
-    p = x*(1-x) - (a*x*y)/(d+x)
+    p = predator_prey(1,u0,args)[0]
     return p
 
 
 x0 = np.array([0.5,0.5,15])
 
-'''
-args = (f,pc)
-newt = newton(G,x0,pc)
-print(f"newt ={newt}")
 
-
-print(f"fsolve = {fsolve}")
-'''
 
 t = np.linspace(0,1000,10000)
-eulsol = solve_ode(func,np.array([0.25,0.25]),t,"rk4",0.001,True,[1,0.1,0.16])
-xeul = eulsol[0]
-yeul = eulsol[1]
-plt.plot(xeul,yeul)
+sol = solve_ode(predator_prey,np.array([0.25,0.25]),t,"rk4",0.001,True,[1,0.1,0.16])
+
+xsol = sol[0]
+ysol = sol[1]
+
+plt.plot(xsol,ysol)
 plt.legend()
-plt.show()
+
 
 '''
 valFind = xvalyval(t,xeul,yeul,dp = 6)
@@ -88,15 +56,13 @@ yval_find = valFind[1]
 '''
 
 #fsolve = fsolve(G,x0,args = (f,pc))
-orbit = orbitShooting(func,x0,pc,fsolve,[1,0.1,0.16])
-print(fsolve)
-print(orbit)
+orbit = orbitShooting(predator_prey,x0,pc,fsolve,[1,0.1,0.16])
 plt.plot(orbit[0],orbit[1],'r+')
 #plt.plot(xval_newt,yval_newt,'r+',label = "newt")
 #plt.plot(xval_fsolve,yval_fsolve,'b1',label = "fsolve")
 #plt.plot(xval_find,yval_find,'gx',label = "find")
 
-plt.plot(xeul,yeul)
+
 plt.legend()
 
 

@@ -1,6 +1,9 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
+"""
+Euler and 4th order Runge-Kutta method implemented to solve ODE initial value problems.
+"""
 
 def euler_step(f, x0, t0, h, *args):
     """
@@ -132,7 +135,7 @@ def solve_ode(f, x0, t_arr, method, deltat_max, system=False, *args):
     output needs to be reshaped if system = True
     """
     if system:
-        return np.array([[item[i] for item in solution_array] for i in range(len(x0))])
+        return solution_array.transpose()
     else:
         return solution_array
 

@@ -1,28 +1,31 @@
 from multiprocessing import Pool, cpu_count
 from timeit import default_timer as timer
-
 import matplotlib.pyplot as plt
 import numpy as np
 from tqdm import tqdm
-
 from solve_ode import solve_ode
 
 
-def plotter(x, y, ax, format, label):
+"""
+Error plots for comparing performance of Euler and 4th order Runge-Kutta methods.
+"""
+
+
+def plotter(x, y, ax, plot_format, label):
     """
     Plots data in either loglog or linear format
     :param x: x data
     :param y: y data
     :param ax: matplotlib ax object to plot on
-    :param format: plot format - either 'loglog' or 'linear'
+    :param plot_format: plot format - either 'loglog' or 'linear'
     :param label: figure label
     """
-    if format == "loglog":
+    if plot_format == "loglog":
         ax.loglog(x, y, label=label)
-    elif format == "linear":
+    elif plot_format == "linear":
         ax.plot(x, y, label=label)
     else:
-        raise ValueError(f"format: '{format}' is not valid. Please select 'loglog' or 'linear'.")
+        raise ValueError(f"format: '{plot_format}' is not valid. Please select 'loglog' or 'linear'.")
 
 
 def dxdt_equals_x(t, x):
@@ -94,7 +97,7 @@ def error_list_for_h_list(method, hvals, t):
     """
     Uses multiprocessing package to speed up computation of error for very small step sizes
     """
-    threads = cpu_count() - 1
+    threads = cpu_count()
     with Pool(threads) as p:
         error_array = list(tqdm(p.imap(err_for_h_wrapper, args), total=len(args), desc="%s" % method))
     end = timer()
