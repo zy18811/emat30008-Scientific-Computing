@@ -67,6 +67,9 @@ t = np.linspace(0,1000,10000)
 eulsol = solve_ode(func,np.array([0.25,0.25]),t,"rk4",0.001,True,[1,0.1,0.16])
 xeul = eulsol[0]
 yeul = eulsol[1]
+plt.plot(xeul,yeul)
+plt.legend()
+plt.show()
 
 '''
 valFind = xvalyval(t,xeul,yeul,dp = 6)
