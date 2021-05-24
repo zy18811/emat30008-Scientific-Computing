@@ -85,7 +85,7 @@ yval_find = valFind[1]
 '''
 
 #fsolve = fsolve(G,x0,args = (f,pc))
-orbit = orbitShooting(func,x0,pc,newton,[1,0.1,0.16])
+orbit = orbitShooting(func,x0,pc,fsolve,[1,0.1,0.16])
 print(fsolve)
 print(orbit)
 plt.plot(orbit[0],orbit[1],'r+')

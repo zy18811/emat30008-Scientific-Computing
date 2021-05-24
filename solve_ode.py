@@ -34,7 +34,7 @@ def solve_ode(f,x0,tArr,method,hmax,system = False,*args):
     elif method == "rk4":
         step = rk4_step
     else:
-        sys.exit("Method: \"%s\" is not valid. Please select a valid method" % method)
+        sys.exit("Method: \"%s\" is not valid. Please select 'euler' or 'rk4'." % method)
     if system:
         sol = np.empty(shape = (len(tArr),len(x0)))
     else:
