@@ -8,12 +8,12 @@ Functions implementing numerical shooting techniques to find the periodic orbits
 """
 
 
-def orbit_shooting(ode, u0, pc, solver=fsolve, *args):
+def orbit_shooting(ode, u0, pc, solver, *args):
     """
     Uses numerical shooting to locate the periodic orbit, if any, of a given ODE/system of ODEs.
     The orbit is defined by coordinates of its starting point and its time period.
     :param ode: Function defining ODE(s) to solve in the form f(t,x,*args) which returns derivative value at (t,x)
-    :param u0: Array of the initial guess for location of periodic orbit
+    :param u0: Numpy array of the initial guess for location of periodic orbit
     :param pc: Phase condition
     :param solver: Solver to be used - fsolve or newton. Fsolve performs better
     :param args: Array containing additional args to be passed to the function
@@ -31,16 +31,17 @@ def orbit_shooting(ode, u0, pc, solver=fsolve, *args):
 
     if callable(ode):
 
-        # tests that function output has same shape as x0
+        # tests that function output is an int, float, list or ndarray
         with np.errstate(over='raise'):
-            # if root finding fails, returns an empty array
+            # if root finding fails for initial values, returns an empty array
             try:
                 test = ode(0, u0, *args)
             except FloatingPointError:
                 return []
         if isinstance(test, (int, np.int_, np.float_, list, np.ndarray)):
+            # tests that function output has same shape as u0
             if not np.array(test).shape == np.array(u0[:-1]).shape:
-                raise ValueError("Shape mismatch. Shape of x0 and ode output not the same")
+                raise ValueError("Shape mismatch. Shape of u0 and ode output not the same")
         else:
             raise TypeError(f"Output of ode is {type(test)}. Output needs to be of type int, float, list or ndarray")
     else:
@@ -52,14 +53,11 @@ def orbit_shooting(ode, u0, pc, solver=fsolve, *args):
 
     if callable(pc):
 
-        # tests that function output has same shape as x0
+        # tests that phase condition output is an int or float
         test = pc(u0, *args)
-        if isinstance(test, (int, np.int_, np.float_, list, np.ndarray)):
-            if not np.array(test).shape == np.array(0).shape:
-                raise ValueError("Shape mismatch. Output of phase condition needs to be scalar")
-        else:
+        if not isinstance(test, (int, float, np.int_, np.float_)):
             raise TypeError(
-                f"Output of phase condition is {type(test)}. Output needs to be of type int, float, list or ndarray")
+                f"Output of phase condition is {type(test)}. Output needs to be of type int or float")
     else:
         raise TypeError(f"pc: '{pc}' needs to be a function.")
 

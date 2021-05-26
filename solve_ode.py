@@ -75,7 +75,7 @@ def solve_ode(f, x0, t_arr, method, deltat_max, system=False, *args):
     """
     Returns solution of an ODE or system of ODEs for an array of time values
     :param f: Function defining ODE(s) to solve in the form f(t,x,*args) which returns derivative value at (t,x)
-    :param x0: Initial condition(s) of ODE(s) - integer or float for single ODE, list or ndarray for system of ODEs
+    :param x0: Initial condition(s) of ODE(s) - integer or float for single ODE, ndarray for system of ODEs
     :param t_arr: Array of time values to solve for
     :param method: Solving method to use - "euler" for Euler method, "rk4" for 4th order Runge-Kutta method
     :param deltat_max: Maximum step size to be used while solving
@@ -155,15 +155,3 @@ def solve_ode(f, x0, t_arr, method, deltat_max, system=False, *args):
         return solution_array.transpose()
     else:
         return solution_array
-
-
-if __name__ == '__main__':
-    def func(t, x, args):
-        dxdt = args * x
-        return dxdt
-
-
-    tArray = np.linspace(0, 1, 10)
-    sol = solve_ode(func, [1], tArray, 'euler', [0.01], False, 1)
-    plt.plot(tArray, sol)
-    plt.show()

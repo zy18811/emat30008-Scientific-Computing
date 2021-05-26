@@ -65,7 +65,7 @@ def dxdt_equals_x_err_for_h(method, h, t):
     :param t: Time value to get solution for
     :return: Returns error of method at t with given h
     """
-    t_array = np.linspace(0, t, 10)
+    t_array = np.linspace(0, t, 5)
     x_est = solve_ode(dxdt_equals_x, 1, t_array, method, h, False)[-1]  # value of estimated solution at given t
     x_true = dxdt_equals_x_true(t)  # true value at given t
     err = error(x_true, x_est)  # error between true and estimated solution
@@ -108,11 +108,11 @@ def error_list_for_h_list(method, hvals, t):
 def main():
     """
     Calculates the error at different step sizes for the Euler and 4th order Runge-Kutta methods on the
-    ODE dxdt = x at t = 1. Plots the error against step size for both methods.
+    ODE dxdt = x at t = 1. Plots the error against step size for both methods as a loglog graph.
     """
     fig = plt.figure()
     ax = fig.add_subplot(1, 1, 1)
-    hvals = np.logspace(1, -8, 1000)
+    hvals = np.logspace(1, -7, 500)
     euler_errors = error_list_for_h_list("euler", hvals, 1)
     rk4_errors = error_list_for_h_list("rk4", hvals, 1)
     plotter(hvals, euler_errors, ax, "loglog", "Euler")
@@ -121,6 +121,10 @@ def main():
     plt.ylabel("Error")
     ax.legend()
     plt.show()
+
+    ee = np.array(euler_errors)
+    re = np.array(rk4_errors)
+    print(ee[np.where(np.isclose(ee,re))])
 
 
 if __name__ == "__main__":

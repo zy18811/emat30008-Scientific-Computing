@@ -2,11 +2,14 @@ import numpy as np
 from solve_ode import solve_ode
 
 """
-tests for the solve_ode function
+tests for the solve_ode() function
 """
 
 
 def input_tests():
+    """
+    Tests for whether solve_ode() can handle good/bad input parameters
+    """
     """
     array of t values in correct format
     """
@@ -55,6 +58,9 @@ def input_tests():
     all_tests_passed = True
     failed_tests = []
 
+    """
+    Tests Start
+    """
     """
     correct single f test
     Testing when good single ODE input - no error should be raised
@@ -271,10 +277,13 @@ def input_tests():
         print("Some input tests failed :(")
         print("___________")
         print("Tests Failed:")
-        [print(fail+' test\n') for fail in failed_tests]
+        [print(fail+' test') for fail in failed_tests]
 
 
 def value_tests():
+    """
+    Tests for whether solve_ode() produces correct output values
+    """
     """
     array of t values in correct format
     """
@@ -351,6 +360,9 @@ def value_tests():
                     break
             step_size *= step_size_multiplier
 
+    """
+    Tests Start
+    """
     """
     testing true against estimated values at t=1 for single ODE: dx/dt = a*x
     Increases step size until result is accurate to a specified tolerance,

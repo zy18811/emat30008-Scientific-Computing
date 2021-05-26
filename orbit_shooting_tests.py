@@ -1,17 +1,19 @@
 import numpy as np
 from scipy.optimize import fsolve
-
 from newtonrhapson import newton
 from periodfinderforcheck import manual_period_finder
 from shooting import orbit_shooting
 from solve_ode import solve_ode
 
 """
-tests for the orbit_shooting function
+tests for the orbit_shooting() function
 """
 
 
 def input_tests():
+    """
+    Tests for whether orbit_shooting() can handle good/bad input parameters
+    """
     """
     good u0 values
     """
@@ -72,6 +74,9 @@ def input_tests():
     failed_tests = []
 
     """
+    Tests Start
+    """
+    """
     good ode, pc, and u0 test
     Testing when a good ODE and u0 are provided - no errors should be raised
     """
@@ -120,9 +125,9 @@ def input_tests():
         print("ode wrong output shape: test passed")
 
     """
-        pc not a function test
-        Testing when pc param is not a function - a TypeError should be raised
-        """
+    pc not a function test
+    Testing when pc param is not a function - a TypeError should be raised
+    """
     try:
         orbit_shooting(good_ode, u0, "not a function", fsolve, [1, 0.1, 0.16])
         all_tests_passed = False
@@ -145,14 +150,14 @@ def input_tests():
 
     """
     pc wrong output shape test
-    Testing when pc param returns an output of the wrong shape - a ValueError should be raised
+    Testing when pc param returns an output of the wrong shape - a TypeError should be raised
     """
     try:
         orbit_shooting(good_ode, u0, pc_wrong_output_shape, fsolve, [1, 0.1, 0.16])
         all_tests_passed = False
         failed_tests.append("pc wrong output shape")
         print("pc wrong output shape: test failed")
-    except ValueError:
+    except TypeError:
         print("pc wrong output shape: test passed")
 
     """
@@ -179,13 +184,19 @@ def input_tests():
         print("Some input tests failed :(")
         print("___________")
         print("Tests Failed:")
-        [print(fail + ' test\n') for fail in failed_tests]
+        [print(fail + ' test') for fail in failed_tests]
 
 
 def value_tests():
+    """
+    Tests for whether orbit_shooting() produces correct output values
+    """
     all_tests_passed = True
     failed_tests = []
 
+    """
+    Tests Start
+    """
     """
     predator-prey good initial values test
     Testing using the predator-prey equations with good initial values provided
