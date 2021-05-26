@@ -58,6 +58,19 @@ def solve_to(step, f, x1, t1, t2, deltat_max, *args):
     return x1
 
 
+def integer_float_input_check(param_name, param):
+    """
+    Function to check type of x0, t_arr, and delat_max values. Raises a TypeError if not integer of float
+    :param param_name: Name of parameter to check
+    :param param: Parameter to check
+    """
+    not_int_bool = np.array(param).dtype != np.int_
+    not_float_bool = np.array(param).dtype != np.float_
+    if not_int_bool and not_float_bool:
+        raise TypeError(f"{param_name}: '{param}' contains invalid types. {param_name} "
+                        f"should contain integers and floats only.")
+
+
 def solve_ode(f, x0, t_arr, method, deltat_max, system=False, *args):
     """
     Returns solution of an ODE or system of ODEs for an array of time values
@@ -70,18 +83,6 @@ def solve_ode(f, x0, t_arr, method, deltat_max, system=False, *args):
     :param args: Array containing additional args to be passed to the function
     :return: Returns an array containing the x value(s) for each time value in t_arr
     """
-
-    """
-    function to check type of x0, t_arr, and delat_max values. Raises a TypeError if not integer of float
-    """
-
-    def integer_float_input_check(param_name, param):
-        not_int_bool = np.array(param).dtype != np.int_
-        not_float_bool = np.array(param).dtype != np.float_
-        if not_int_bool and not_float_bool:
-            raise TypeError(f"{param_name}: '{param}' contains invalid types. {param_name} "
-                            f"should contain integers and floats only.")
-
     """
     checks type(s) of x0
     """
@@ -96,6 +97,22 @@ def solve_ode(f, x0, t_arr, method, deltat_max, system=False, *args):
     checks type of deltat_max
     """
     integer_float_input_check('deltat_max', deltat_max)
+
+    """
+    checks if f is a function. If it is checks if it returns an output in the right shape. Raises an error if not
+    """
+    if callable(f):
+
+        # tests that function output has same shape as x0
+        t = t_arr[0]
+        test = f(t,x0,*args)
+        if isinstance(test,(int,np.int_,np.float_,list,np.ndarray)):
+            if not np.array(test).shape == np.array(x0).shape:
+                raise ValueError("Shape mismatch. Shape of x0 and f output not the same")
+        else:
+            raise TypeError(f"Output of f is {type(test)}. Output needs to be of type int, float, list or ndarray")
+    else:
+        raise TypeError(f"f: '{f}' needs to be a function.")
 
     """
     checks if system is a bool, raises a TypeError if not
@@ -142,7 +159,6 @@ def solve_ode(f, x0, t_arr, method, deltat_max, system=False, *args):
 
 if __name__ == '__main__':
     def func(t, x, args):
-        # print(a)
         dxdt = args * x
         return dxdt
 

@@ -4,7 +4,8 @@ import matplotlib.pyplot as plt
 from scipy.optimize import fsolve
 from newtonrhapson import newton
 from periodfinderforcheck import manual_period_finder
-from shooting import orbitShooting
+from shooting import orbit_shooting
+
 
 def predator_prey(t,y,args):
 
@@ -56,7 +57,7 @@ yval_find = valFind[1]
 '''
 
 #fsolve = fsolve(G,x0,args = (f,pc))
-orbit = orbitShooting(predator_prey,x0,pc,fsolve,[1,0.1,0.16])
+orbit = orbit_shooting(predator_prey, x0, pc, fsolve, [1, 0.1, 0.16])
 plt.plot(orbit[0],orbit[1],'r+')
 #plt.plot(xval_newt,yval_newt,'r+',label = "newt")
 #plt.plot(xval_fsolve,yval_fsolve,'b1',label = "fsolve")

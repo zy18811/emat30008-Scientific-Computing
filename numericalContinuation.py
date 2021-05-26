@@ -1,10 +1,7 @@
-import sys
-
 import matplotlib.pyplot as plt
 import numpy as np
 from scipy.optimize import fsolve, root
 from tqdm import tqdm
-
 from shooting import shootingG
 
 """
@@ -193,7 +190,9 @@ def pseudo_arclength_continuation(function, u0, pars, vary_par, vary_par_range, 
     sols = []
     par_list = []
 
+
     while True:
+
         delta_x = v1[:-1] - v0[:-1]
         delta_p = v1[-1] - v0[-1]
 
@@ -219,8 +218,8 @@ def pseudo_arclength_continuation(function, u0, pars, vary_par, vary_par_range, 
 
         # plt.axline((u[-1],u[0]),(sol[-1],sol[0]),c = 'k',ls = '--',alpha = 0.4)
 
-        v0 = np.round(v1, 2)
-        v1 = np.round(sol, 2)
+        v0 = v1
+        v1 = sol
 
     # converts sols to an ndarray to allow better slicing
     sols = np.array(sols)
@@ -268,14 +267,14 @@ def cubic(x, c):
 
 u0_hopfNormal = np.array([1.4, 0, 6.3])
 
-# continuation('natural',hopfNormal,u0_hopfNormal,[2, -1],0,[2,-1],100,shootingG,fsolve,pcHopfNormal)
-# continuation('pseudo',hopfNormal,u0_hopfNormal,[2,-1],0,[2,-1],200,shootingG,fsolve,pcHopfNormal)
+#continuation('natural',hopfNormal,u0_hopfNormal,[2, -1],0,[2,-1],30,shootingG,fsolve,pcHopfNormal)
+#continuation('pseudo',hopfNormal,u0_hopfNormal,[2,-1],0,[2,-1],200,shootingG,fsolve,pcHopfNormal)
 
 continuation('natural', modHopfNormal, u0_hopfNormal, [2], 0, [2, -1], 50, shootingG, fsolve, pcModHopfNormal)
 continuation('pseudo', modHopfNormal, u0_hopfNormal, [2], 0, [2, -1], 30, shootingG, fsolve, pcModHopfNormal)
 
-# continuation('natural',cubic,[1,1,1],[-2],0,[-2,2],200,discretisation= lambda x:x,solver=fsolve,pc=None)
-# continuation('pseudo',cubic,np.array([1,1,1]),[2],0,[-2,2],200,lambda x:x,fsolve,None)
+#continuation('natural',cubic,[1,1,1],[-2],0,[-2,2],200,discretisation= lambda x:x,solver=fsolve,pc=None)
+#continuation('pseudo',cubic,np.array([1,1,1]),[2],0,[-2,2],200,lambda x:x,fsolve,None)
 
 
 plt.grid()

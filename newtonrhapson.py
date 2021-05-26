@@ -62,10 +62,17 @@ def newton(f,x0,args):
     Performs Newton-Raphson iterations, starting from initial approximation. Breaks if value of f() is close to zero
     indicating a root has been found.
     """
+    iter_count = 0
     while True:
         check = f(x0,*args)    # Value of function at x
         zero = np.zeros(np.shape(check))    # Generates array of zeros
         if np.allclose(check, zero):    # Checks if value of function is close to zero --> root. Breaks if root is found
             break
         x0 = newtonIter(f,x0,*args) # Applies an iteration to function at current root approximation
+        iter_count += 1
+
+        # Halts if no root is found after 1000 iterations and raises an error.
+        if iter_count == 1000:
+            raise StopIteration("1000 Newton iterations performed with no convergence.\n"
+                                "Please try again with a different initial values.")
     return x0
