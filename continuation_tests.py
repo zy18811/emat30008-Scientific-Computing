@@ -429,7 +429,7 @@ def value_tests():
     Initial values for hopf normal form 
     """
     u0_hopf_normal = np.array([1.4, 0, 6.3])
-    
+
     """
     hopf normal before bifurcation test
     Testing performance of numerical continuation on the shooting method for the hopf normal form equations by using 
