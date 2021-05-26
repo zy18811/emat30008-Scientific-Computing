@@ -53,9 +53,10 @@ def input_tests():
         return 1
 
     all_tests_passed = True
+    failed_tests = []
 
     """
-    correct f - single test
+    correct single f test
     Testing when good single ODE input - no error should be raised
     """
     try:
@@ -63,10 +64,11 @@ def input_tests():
         print("correct single f: test passed")
     except TypeError:
         all_tests_passed = False
+        failed_tests.append("correct single f")
         print("correct single f: test failed")
 
     """
-    correct f - system test
+    correct system f test
     Testing when good system of ODEs input - no error should be raised
     """
     try:
@@ -74,6 +76,7 @@ def input_tests():
         print("correct system f: test passed")
     except TypeError:
         all_tests_passed = False
+        failed_tests.append("correct system f")
         print("correct system f: test failed")
 
     """
@@ -83,6 +86,7 @@ def input_tests():
     try:
         solve_ode("not a function", [1], good_t, 'euler', [0.01], False, 1)
         all_tests_passed = False
+        failed_tests.append("f not function")
         print("f not a function test: failed")
     except TypeError:
         print("f not a function test: passed")
@@ -94,6 +98,7 @@ def input_tests():
     try:
         solve_ode(f_wrong_output_type, [1], good_t, 'euler', [0.01], False, 1)
         all_tests_passed = False
+        failed_tests.append("f wrong output type")
         print("f wrong output type: failed")
     except TypeError:
         print("f wrong output type: passed")
@@ -105,6 +110,7 @@ def input_tests():
     try:
         solve_ode(f_wrong_output_shape_single, [1], good_t, 'euler', [0.01], False, 1)
         all_tests_passed = False
+        failed_tests.append("single f wrong output shape")
         print("single f wrong output shape: failed")
     except ValueError:
         print("single f wrong output shape: passed")
@@ -116,6 +122,7 @@ def input_tests():
     try:
         solve_ode(f_wrong_output_shape_system, [1, 1], good_t, 'euler', [0.01], True, 1)
         all_tests_passed = False
+        failed_tests.append("system f wrong output shape")
         print("system f wrong output shape: failed")
     except ValueError:
         print("system f wrong output shape: passed")
@@ -129,6 +136,7 @@ def input_tests():
         print("correct x0 type: test passed")
     except TypeError:
         all_tests_passed = False
+        failed_tests.append("correct x0 type")
         print("correct x0 type: test failed")
 
     """
@@ -138,6 +146,7 @@ def input_tests():
     try:
         solve_ode(single_good_f, "wrong x0 type", good_t, 'euler', [0.01], False, 1)
         all_tests_passed = False
+        failed_tests.append("incorrect x0 type")
         print("incorrect x0 type: test failed")
     except TypeError:
         print("incorrect x0 type: test passed")
@@ -151,6 +160,7 @@ def input_tests():
         print("correct t_arr type: test passed")
     except TypeError:
         all_tests_passed = False
+        failed_tests.append("correct t_arr type")
         print("correct t_arr type: test failed")
 
     """
@@ -160,6 +170,7 @@ def input_tests():
     try:
         solve_ode(single_good_f, 1, "wrong t_arr type", 'euler', [0.01], False, 1)
         all_tests_passed = False
+        failed_tests.append("incorrect t_arr type")
         print("incorrect t_arr type: test failed")
     except TypeError:
         print("incorrect t_arr type: test passed")
@@ -173,6 +184,7 @@ def input_tests():
         print("correct deltat_max type: test passed")
     except TypeError:
         all_tests_passed = False
+        failed_tests.append("correct deltat_max type")
         print("correct deltat_max type: test failed")
 
     """
@@ -182,6 +194,7 @@ def input_tests():
     try:
         solve_ode(single_good_f, 1, good_t, 'euler', "wrong deltat_max type", False, 1)
         all_tests_passed = False
+        failed_tests.append("incorrect deltat_max type")
         print("incorrect deltat_max type: test failed")
     except TypeError:
         print("incorrect deltat_max type: test passed")
@@ -195,6 +208,7 @@ def input_tests():
         print("correct method euler: test passed")
     except ValueError:
         all_tests_passed = False
+        failed_tests.append("correct method euler")
         print("correct method euler: test failed")
 
     """
@@ -206,6 +220,7 @@ def input_tests():
         print("correct method rk4: test passed")
     except ValueError:
         all_tests_passed = False
+        failed_tests.append("correct method rk4")
         print("correct method rk4: test failed")
 
     """
@@ -215,6 +230,7 @@ def input_tests():
     try:
         solve_ode(single_good_f, 1, good_t, 'incorrect method', 0.01, False, 1)
         all_tests_passed = False
+        failed_tests.append("incorrect method")
         print("incorrect method: test failed")
     except ValueError:
         print("incorrect method: test passed")
@@ -228,6 +244,7 @@ def input_tests():
         print("correct system type: test passed")
     except TypeError:
         all_tests_passed = False
+        failed_tests.append("correct system type")
         print("correct system type: test failed")
 
     """
@@ -237,10 +254,14 @@ def input_tests():
     try:
         solve_ode(single_good_f, 1, good_t, 'euler', good_t, "wrong system type", 1)
         all_tests_passed = False
+        failed_tests.append("incorrect system type")
         print("incorrect system type: test failed")
     except TypeError:
         print("incorrect system type: test passed")
 
+    """
+    Results
+    """
     if all_tests_passed:
         print("___________")
         print("All input tests passed :)")
@@ -249,6 +270,8 @@ def input_tests():
         print("___________")
         print("Some input tests failed :(")
         print("___________")
+        print("Tests Failed:")
+        [print(fail+' test\n') for fail in failed_tests]
 
 
 def value_tests():
@@ -398,13 +421,18 @@ def value_tests():
     """
     accuracy_test_single('rk4', True, [1, 1], 0.1, 1e-5, system_good_f, system_good_f_true, 1, [1, -1])
 
+    """
+    Results
+    """
     print("___________")
     print(" Value tests complete :)")
     print("___________")
 
 
 def main():
+    print("Input Tests:")
     input_tests()
+    print("Value Tests:")
     value_tests()
 
 

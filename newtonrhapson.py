@@ -71,8 +71,7 @@ def newton(f,x0,args):
         x0 = newtonIter(f,x0,*args) # Applies an iteration to function at current root approximation
         iter_count += 1
 
-        # Halts if no root is found after 1000 iterations and raises an error.
+        # Halts if no root is found after 1000 iterations and returns an empty array
         if iter_count == 1000:
-            raise StopIteration("1000 Newton iterations performed with no convergence.\n"
-                                "Please try again with a different initial values.")
+            return []
     return x0
