@@ -96,8 +96,9 @@ def error_list_for_h_list(method, hvals, t):
 
     """
     Uses multiprocessing package to speed up computation of error for very small step sizes
+    The tqdm function creates a progress bar in the console 
     """
-    threads = cpu_count()
+    threads = cpu_count()-1
     with Pool(threads) as p:
         error_array = list(tqdm(p.imap(err_for_h_wrapper, args), total=len(args), desc="%s" % method))
     end = timer()

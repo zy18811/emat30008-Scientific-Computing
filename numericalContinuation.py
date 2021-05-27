@@ -4,6 +4,7 @@ import warnings
 from scipy.optimize import fsolve, root
 from shooting import shootingG
 from solve_ode import integer_float_input_check
+from tqdm import tqdm
 
 """
 Functions implementing natural parameter and pseudo-arclength numerical continuation. Finds how the solutions of a 
@@ -165,9 +166,9 @@ def natural_parameter_continuation(u0, vary_par_range, vary_par_number, solWrapp
     par_list = np.linspace(vary_par_range[0], vary_par_range[1], vary_par_number)
 
     # iterates over each value in parArr and returns the function solution. This is then used as the function state for
-    # the next iteration
+    # the next iteration. tqdm() prints a progress bar to the console.
     sols = []
-    for val in par_list:
+    for val in tqdm(par_list, desc = "Nat. Param. Cont.: Iterating through parameter values"):
         u0 = solWrapper(val, u0)
         sols.append(u0)
         u0 = np.round(u0, 2)
@@ -268,33 +269,40 @@ def pseudo_arclength_continuation(function, u0, pars, vary_par, vary_par_range, 
 
     sols = []
     par_list = []
-    while True:
-        delta_x = v1[:-1] - v0[:-1]
-        delta_p = v1[-1] - v0[-1]
 
-        pred_v_x = v1[:-1] + delta_x
-        pred_v_p = v1[-1] + delta_p
+    # tqdm tracks iterations in the console
+    with tqdm() as pbar:
+        pbar.set_description("Pseudo Arc-length Cont.: Iterating")
+        # iterates until halt condition
+        while True:
+            pbar.update(1)
+            delta_x = v1[:-1] - v0[:-1]
+            delta_p = v1[-1] - v0[-1]
 
-        pred_v = np.append(pred_v_x, pred_v_p)
-        pars[vary_par] = pred_v[-1]
+            pred_v_x = v1[:-1] + delta_x
+            pred_v_p = v1[-1] + delta_p
 
-        # solves augmented root finding problem for given arguments
-        solution = root(F, pred_v, method='lm', args=(function, pc, discretisation, delta_x, delta_p, pars, 0))
-        sol = solution['x']
+            pred_v = np.append(pred_v_x, pred_v_p)
+            pars[vary_par] = pred_v[-1]
 
-        normed_sol = np.linalg.norm(sol[:-1])
-        normed_v1 = np.linalg.norm(v1[:-1])
+            # solves augmented root finding problem for given arguments
+            solution = root(F, pred_v, method='lm', args=(function, pc, discretisation, delta_x, delta_p, pars, 0))
+            sol = solution['x']
 
-        # halts when normed point value is < 0
-        if normed_sol - normed_v1 > 0:
-            break
+            normed_sol = np.linalg.norm(sol[:-1])
+            normed_v1 = np.linalg.norm(v1[:-1])
 
-        # appends solution and respective parameter value to lists to be returned
-        sols.append(sol[:-1])
-        par_list.append(sol[-1])
+            # halts when sol would cross the y-axis
+            if normed_sol - normed_v1 > 0:
+                pbar.close()
+                break
 
-        v0 = v1
-        v1 = sol
+            # appends solution and respective parameter value to lists to be returned
+            sols.append(sol[:-1])
+            par_list.append(sol[-1])
+
+            v0 = v1
+            v1 = sol
 
     # converts sols to an ndarray to allow better slicing
     sols = np.array(sols)
