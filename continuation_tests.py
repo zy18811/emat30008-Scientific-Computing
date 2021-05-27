@@ -12,10 +12,6 @@ tests for the continuation() function
 def input_tests():
     """
     Tests for whether continuation() can handle good/bad input parameters
-
-    It is the expected behaviour that tests using natural parameter continuation will fail for values after the
-    bifurcation. This is because at folds (saddle-node bifurcations) the search line does not intersect with the
-    curve. However, they are included for illustrative purposes."
     """
 
     """
@@ -384,6 +380,10 @@ def input_tests():
 def value_tests():
     """
     Tests for whether continuation() produces correct output values
+
+    It is the expected behaviour that tests using natural parameter continuation will fail for values after the
+    bifurcation. This is because at folds (saddle-node bifurcations) the search line does not intersect with the
+    curve. However, they are included for illustrative purposes."
     """
     all_tests_passed = True
     failed_tests = []
@@ -616,8 +616,8 @@ def value_tests():
 
 
 def main():
-    # print("Input Tests:")
-    # input_tests()
+    print("Input Tests:")
+    input_tests()
     print("Value Tests:")
     print("It is the expected behaviour that tests using natural parameter continuation will fail for values after the "
           "bifurcation.\nThis is because at folds (saddle-node bifurcations) the search line does not intersect with "
