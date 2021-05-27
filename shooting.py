@@ -16,7 +16,7 @@ def orbit_shooting(ode, u0, pc, solver, *args):
     :param ode: Function defining ODE(s) to find orbit of in the form f(t,x,*args) which returns derivative at (t,x)
     :param u0: Numpy array of the initial guess for location of periodic orbit
     :param pc: Phase condition
-    :param solver: Solver to be used - fsolve or newton. Fsolve performs better
+    :param solver: Solver to be used - fsolve or newton. Fsolve performs better and is more robust.
     :param args: Array containing additional args to be passed to the function
     :return: Returns the start coordinates and time period of found orbit. If the root finding fails, returns an empty
     array.

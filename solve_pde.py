@@ -340,7 +340,7 @@ def main():
     kappa = 1
     L = 2
     T = 0.5
-    mx = 10
+    mx = 100
     mt = 1000
 
     """
@@ -412,7 +412,7 @@ def main():
     kappa = 1
     L = 2
     T = 0.5
-    mx = 10
+    mx = 100
     mt = 1000
 
     """
@@ -444,13 +444,13 @@ def main():
     """
     approximating solution using 3 methods - forward Euler, backward Euler, Crank-Nicholson
     """
-    f_x, f_u = solve_diffusive_pde('forward', kappa, L, T, mx, mt, 'dirichlet', l_boundary, r_boundary, initial,
+    f_x, f_u = solve_diffusive_pde('forward', kappa, L, T, mx, mt, 'neumann', l_boundary, r_boundary, initial,
                                    source, ic_args=L)
 
-    b_x, b_u = solve_diffusive_pde('backward', kappa, L, T, mx, mt, 'dirichlet', l_boundary, r_boundary, initial,
+    b_x, b_u = solve_diffusive_pde('backward', kappa, L, T, mx, mt, 'neumann', l_boundary, r_boundary, initial,
                                    source, ic_args=L)
 
-    c_x, c_u = solve_diffusive_pde('crank', kappa, L, T, mx, mt, 'dirichlet', l_boundary, r_boundary, initial,
+    c_x, c_u = solve_diffusive_pde('crank', kappa, L, T, mx, mt, 'neumann', l_boundary, r_boundary, initial,
                                    source, ic_args=L)
 
     """

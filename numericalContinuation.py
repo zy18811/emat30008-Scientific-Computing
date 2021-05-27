@@ -1,6 +1,7 @@
 import warnings
 from math import pi
-
+from shooting import shootingG
+import scipy
 import matplotlib.pyplot as plt
 import numpy as np
 from scipy.optimize import fsolve, root
@@ -634,7 +635,7 @@ if __name__ == '__main__':
     pde numerical values
     """
     kappa = 1
-    L = 1
+    L = 2
     T = 0.5
     mx = 100
     mt = 1000

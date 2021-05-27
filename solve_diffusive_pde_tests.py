@@ -893,10 +893,6 @@ def value_tests():
         failed_tests.append("non-homog 1D heat crank k > 1/2")
         print("non-homog 1D heat crank k > 1/2: test failed")
 
-
-
-
-
     """
     Results
     """
