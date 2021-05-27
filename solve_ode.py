@@ -5,6 +5,7 @@ import numpy as np
 Euler and 4th order Runge-Kutta method implemented to solve ODE initial value problems.
 """
 
+
 def euler_step(f, x0, t0, h, *args):
     """
     Performs a single step of the Euler method for given function at (t1,x1) with step size h
@@ -105,8 +106,8 @@ def solve_ode(f, x0, t_arr, method, deltat_max, system=False, *args):
 
         # tests that function output has same shape as x0
         t = t_arr[0]
-        test = f(t,x0,*args)
-        if isinstance(test,(int,np.int_,np.float_,list,np.ndarray)):
+        test = f(t, x0, *args)
+        if isinstance(test, (int, np.int_, np.float_, list, np.ndarray)):
             if not np.array(test).shape == np.array(x0).shape:
                 raise ValueError("Shape mismatch. Shape of x0 and f output not the same")
         else:
@@ -155,3 +156,134 @@ def solve_ode(f, x0, t_arr, method, deltat_max, system=False, *args):
         return solution_array.transpose()
     else:
         return solution_array
+
+
+def main():
+    """
+    Example 1 - Single ODE
+
+    dx/dt = x,  initial condition x(0) = 1
+
+    Solving for t = 0 to t = 1
+    """
+
+    def dxdt_equals_x(t, x):
+        """
+        Function defining ODE dxdt = x
+        :param t: t value
+        :param x: x value
+        :return: returns value of dxdt at (t,x)
+        """
+        dxdt = x
+        return dxdt
+
+    def dxdt_equals_x_true(t):
+        """
+        Returns true values of x for the ODE dxdt = x for given values of t
+        :param t: t value(s) to return solution for
+        :return: Returns true values of x for the ODE dxdt = x for given values of t
+        """
+        x = np.exp(t)
+        return x
+
+    t = np.linspace(0, 1, 100)
+    """
+    Euler, h = 0.01
+    """
+    ex1_euler_sol = solve_ode(dxdt_equals_x, 1, t, 'euler', 0.01, False)
+
+    """
+    4th Order Runge-Kutta, h = 0.01
+    """
+    ex1_rk4_sol = solve_ode(dxdt_equals_x, 1, t, 'rk4', 0.01, False)
+
+    """
+    Plotting solutions and true solution
+    """
+    plt.plot(t, ex1_euler_sol, label='Euler')
+    plt.plot(t, ex1_euler_sol, label='RK4')
+    plt.plot(t, dxdt_equals_x_true(t), label='True')
+    plt.xlabel('t')
+    plt.ylabel('x')
+    plt.legend()
+    plt.show()
+
+    """
+    Example 2 - System of ODEs
+
+    d2x/dt2 = -x,  initial condition x(0) = 1
+    
+    This is equivalent to the system of ODEs:
+    
+    dx/dt = y, dy/dt = -x, initial conditions x(0) = 1, y(0) = 1
+
+    Solving for t = 0 to t = 10
+    """
+
+    def d2xdt2_equals_minus_x(t, u):
+        """
+        Function defining system of  ODEs dx/dt = y, dy/dt = -x
+        :param t: t value
+        :param u: vector u = [x, y]
+        :return: returns value of dx/dt and dy/dt at (t,u)
+        """
+        x = u[0]
+        y = u[1]
+
+        dxdt = y
+        dydt = -x
+
+        return np.array([dxdt, dydt])
+
+    def d2xdt2_equals_minus_x_true(t):
+        """
+        Function returning true value of system of  ODEs dxdt = y, dy/dt = -x
+        :param t: t value
+        :return: returns true value of x and y at t
+        """
+        x = np.sin(t) + np.cos(t)
+        y = np.cos(t) - np.sin(t)
+        return np.array([x, y])
+
+    t = np.linspace(0, 10, 100)
+    """
+    Euler, h = 0.01
+    """
+    ex2_euler_sol = solve_ode(d2xdt2_equals_minus_x, [1, 1], t, 'rk4', 0.01, True)
+    ex2_euler_sol_x = ex2_euler_sol[0]
+    ex2_euler_sol_y = ex2_euler_sol[1]
+
+    """
+    4th Order Runge-Kutta, h = 0.01
+    """
+    ex2_rk4_sol = solve_ode(d2xdt2_equals_minus_x, [1, 1], t, 'rk4', 0.01, True)
+    ex2_rk4_sol_x = ex2_rk4_sol[0]
+    ex2_rk4_sol_y = ex2_rk4_sol[1]
+
+    """
+    Plotting solutions and true solution
+    """
+    true = d2xdt2_equals_minus_x_true(t)
+    true_x = true[0]
+    true_y = true[1]
+
+    plt.subplot(2, 1, 1)
+    plt.plot(t, ex2_euler_sol_x, label='Euler')
+    plt.plot(t, ex2_rk4_sol_x, label='RK4')
+    plt.plot(t, true_x, label='True')
+    plt.legend()
+    plt.xlabel('t')
+    plt.ylabel('x')
+
+    plt.subplot(2, 1, 2)
+    plt.plot(t, ex2_euler_sol_y, label='Euler')
+    plt.plot(t, ex2_rk4_sol_y, label='RK4')
+    plt.plot(t, true_y, label='True')
+    plt.legend()
+    plt.xlabel('t')
+    plt.ylabel('y (dx/dt)')
+    plt.show()
+
+
+if __name__ == '__main__':
+    main()
