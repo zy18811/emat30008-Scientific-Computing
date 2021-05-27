@@ -1,9 +1,13 @@
+import warnings
+from math import pi
+
 import matplotlib.pyplot as plt
 import numpy as np
-import warnings
 from scipy.optimize import fsolve, root
-from shooting import shootingG
-from solve_ode import integer_float_input_check
+from tqdm import tqdm
+
+from solve_ode import integer_float_array_input_check
+from solve_pde import solve_diffusive_pde
 
 """
 Functions implementing natural parameter and pseudo-arclength numerical continuation. Finds how the solutions of a 
@@ -37,12 +41,12 @@ def continuation(method, function, u0, pars, vary_par, vary_par_range, vary_par_
     """
     checks type of u0 - see solve_ode.py for function details
     """
-    integer_float_input_check("u0", u0)
+    integer_float_array_input_check("u0", u0)
 
     """
     checks type of pars - see solve_ode.py for function details
     """
-    integer_float_input_check("pars", pars)
+    integer_float_array_input_check("pars", pars)
 
     """
     checks that vary_par is an integer >=0, raises a Type/ValueError if not
@@ -67,7 +71,7 @@ def continuation(method, function, u0, pars, vary_par, vary_par_range, vary_par_
     """
     if isinstance(vary_par_range, (list, np.ndarray)):
         if len(vary_par_range) == 2:
-            integer_float_input_check("vary_par_range", vary_par_range)
+            integer_float_array_input_check("vary_par_range", vary_par_range)
         else:
             raise ValueError(f"vary_par_range: {vary_par_range} must be in the shape [a, b].")
     else:
@@ -111,7 +115,6 @@ def continuation(method, function, u0, pars, vary_par, vary_par_range, vary_par_
             raise TypeError(f"discretisation(function): the discretisation of function needs to be a function.")
     else:
         raise TypeError(f"function: '{function}' needs to be a function.")
-
 
     def sol_wrapper(val, u0):
         """
@@ -165,9 +168,9 @@ def natural_parameter_continuation(u0, vary_par_range, vary_par_number, solWrapp
     par_list = np.linspace(vary_par_range[0], vary_par_range[1], vary_par_number)
 
     # iterates over each value in parArr and returns the function solution. This is then used as the function state for
-    # the next iteration
+    # the next iteration. tqdm() prints a progress bar to the console.
     sols = []
-    for val in par_list:
+    for val in tqdm(par_list, desc="Nat. Param. Cont.: Iterating through parameter values"):
         u0 = solWrapper(val, u0)
         sols.append(u0)
         u0 = np.round(u0, 2)
@@ -268,62 +271,157 @@ def pseudo_arclength_continuation(function, u0, pars, vary_par, vary_par_range, 
 
     sols = []
     par_list = []
-    while True:
-        delta_x = v1[:-1] - v0[:-1]
-        delta_p = v1[-1] - v0[-1]
 
-        pred_v_x = v1[:-1] + delta_x
-        pred_v_p = v1[-1] + delta_p
+    # tqdm tracks iterations in the console
+    with tqdm() as pbar:
+        pbar.set_description("Pseudo Arc-length Cont.: Iterating")
+        # iterates until halt condition
+        while True:
+            pbar.update(1)
+            delta_x = v1[:-1] - v0[:-1]
+            delta_p = v1[-1] - v0[-1]
 
-        pred_v = np.append(pred_v_x, pred_v_p)
-        pars[vary_par] = pred_v[-1]
+            pred_v_x = v1[:-1] + delta_x
+            pred_v_p = v1[-1] + delta_p
 
-        # solves augmented root finding problem for given arguments
-        solution = root(F, pred_v, method='lm', args=(function, pc, discretisation, delta_x, delta_p, pars, 0))
-        sol = solution['x']
+            pred_v = np.append(pred_v_x, pred_v_p)
+            pars[vary_par] = pred_v[-1]
 
-        normed_sol = np.linalg.norm(sol[:-1])
-        normed_v1 = np.linalg.norm(v1[:-1])
+            # solves augmented root finding problem for given arguments
+            solution = root(F, pred_v, method='lm', args=(function, pc, discretisation, delta_x, delta_p, pars, 0))
+            sol = solution['x']
 
-        # halts when normed point value is < 0
-        if normed_sol - normed_v1 > 0:
-            break
+            normed_sol = np.linalg.norm(sol[:-1])
+            normed_v1 = np.linalg.norm(v1[:-1])
 
-        # appends solution and respective parameter value to lists to be returned
-        sols.append(sol[:-1])
-        par_list.append(sol[-1])
+            # halts when sol would cross the y-axis
+            if normed_sol - normed_v1 > 0:
+                pbar.close()
+                break
 
-        v0 = v1
-        v1 = sol
+            # appends solution and respective parameter value to lists to be returned
+            sols.append(sol[:-1])
+            par_list.append(sol[-1])
+
+            v0 = v1
+            v1 = sol
 
     # converts sols to an ndarray to allow better slicing
     sols = np.array(sols)
     return par_list, sols
 
 
-
-
-
 if __name__ == '__main__':
+    """
+    Example 1 algebraic cubic equation
+    """
+    """
+    function for cubic equation
+    """
+
+
+    def cubic(x, args):
+        c = args[0]
+        return x ** 3 - x + c
+
+
+    """
+    Natural parameter continuation - varying c from -2 to 2
+    """
+    par_list_nat, x_nat = continuation('natural', cubic, np.array([1, 1, 1]), [2], 0, [-2, 2], 200,
+                                       discretisation=lambda x: x, solver=fsolve, pc=None)
+
+    """
+    Pseudo-arclength continuation - varying c from -2 to 2
+    """
+    par_list_ps,x_ps = continuation('pseudo',cubic,np.array([1,1,1]),[2],0,[-2,2],200,lambda x:x,fsolve,None)
+
+    """
+    Plotting c against ||x|| for both continuation methods
+    """
+    norm_x_nat = scipy.linalg.norm(x_nat, axis = 1, keepdims = True)
+    norm_x_ps = scipy.linalg.norm(x_ps, axis = 1, keepdims = True)
+    plt.plot(par_list_nat, norm_x_nat[:, 0],label = 'Nat. Param.')
+    plt.plot(par_list_ps, norm_x_ps[:, 0],label = 'Pseudo-arclength')
+    plt.xlabel('c')
+    plt.ylabel('||x||')
+    plt.legend()
+    plt.show()
+
+    """
+    It can be seen from the figure that there is a fold at around c == 0.4.
+    Natural parameter continuation fails after the fold as expected.
+    Pseudo-arclength continuation succeeds and follows the curve around the fold.
+    """
+
+    """
+    Example 2: Hopf normal form equations - shooting
+    """
+    """
+    function for hopf normal form 
+    """
     def hopfNormal(t, u, args):
         beta = args[0]
         sigma = args[1]
 
         u1 = u[0]
         u2 = u[1]
-        du1dt = beta * u1 - u2 + sigma * u1 * (u1 ** 2 + u2 ** 2)
-        if du1dt == np.NaN:
-            print(u1, u2, beta)
 
+        du1dt = beta * u1 - u2 + sigma * u1 * (u1 ** 2 + u2 ** 2)
         du2dt = u1 + beta * u2 + sigma * u2 * (u1 ** 2 + u2 ** 2)
         return np.array([du1dt, du2dt])
 
-
+    """
+    Phase condition for hopf normal form
+    """
     def pcHopfNormal(u0, args):
         p = hopfNormal(1, u0, args)[0]
         return p
 
+    """
+    initial values for hopf normal form
+    """
+    u0_hopfNormal = np.array([1.4, 0, 6.3])
 
+    """
+    Natural parameter continuation - varying beta from 2 to -1
+    """
+
+    par_list_nat, x_nat = continuation('natural', hopfNormal, u0_hopfNormal, [2, -1], 0, [2, -1], 30, shootingG, fsolve,
+                                       pcHopfNormal)
+
+    """
+    Pseudo arclength continuation - varying beta from 2 to -1
+    """
+    par_list_ps, x_ps = continuation('pseudo', hopfNormal, u0_hopfNormal, [2, -1], 0, [2, -1], 200, shootingG, fsolve,
+                                     pcHopfNormal)
+
+    """
+    Plotting beta against ||x|| for both continuation methods
+    """
+    # excluding T from x
+    norm_x_nat = scipy.linalg.norm(x_nat[:,:-1], axis=1, keepdims=True)
+    norm_x_ps = scipy.linalg.norm(x_ps[:,:-1], axis=1, keepdims=True)
+    plt.plot(par_list_nat, norm_x_nat[:, 0], label='Nat. Param.')
+    plt.plot(par_list_ps, norm_x_ps[:, 0], label='Pseudo-arclength')
+    plt.xlabel('beta')
+    plt.ylabel('||x||')
+    plt.legend()
+    plt.show()
+
+    """
+    It can be seen there is a fold at beta = 0.
+    Natural parameter continuation fails after the fold as expected.
+    Pseudo-arclength continuation succeeds and follows the curve around the fold.
+    """
+
+    """
+    Example 3: modified Hopf normal equations
+    """
+
+    """
+    function for modified hopf normal
+    """
     def modHopfNormal(t, u, args):
         beta = args[0]
 
@@ -334,30 +432,234 @@ if __name__ == '__main__':
         du2dt = u1 + beta * u2 + u2 * (u1 ** 2 + u2 ** 2) - u2 * (u1 ** 2 + u2 ** 2) ** 2
         return np.array([du1dt, du2dt])
 
-
+    """
+    phase condition for modified hopf normal
+    """
     def pcModHopfNormal(u0, args):
         p = modHopfNormal(1, u0, args)[0]
         return p
 
+    """
+    using same u0 as hopf normal
+    """
 
-    def cubic(x, args):
-        c = args[0]
-        return x ** 3 - x + c
+    """
+    Natural parameter continuation varying beta from 2 to -1
+    """
+    par_list_nat, x_nat = continuation('natural', modHopfNormal, u0_hopfNormal, [2], 0, [2, -1], 50, shootingG, fsolve,
+                                       pcModHopfNormal)
 
-    u0_hopfNormal = np.array([1.4, 0, 6.3])
+    """
+    Pseuo-arclength continuation varying beta from 2 to -1
+    """
+    par_list_ps, x_ps = continuation('pseudo', modHopfNormal, u0_hopfNormal, [2], 0, [2, -1], 30, shootingG, fsolve,
+                                     pcModHopfNormal)
 
-
-    #par_list_nat, x_nat = continuation('natural',hopfNormal,u0_hopfNormal,[2, -1],0,[2,-1],30,shootingG,fsolve,pcHopfNormal)
-    #par_list_ps,x_ps = continuation('pseudo',hopfNormal,u0_hopfNormal,[2,-1],0,[2,-1],200,shootingG,fsolve,pcHopfNormal)
-
-    par_list_nat, x_nat = continuation('natural', modHopfNormal, u0_hopfNormal, [2], 0, [2, -1], 50, shootingG, fsolve, pcModHopfNormal)
-    par_list_ps, x_ps = continuation('pseudo', modHopfNormal, u0_hopfNormal, [2], 0, [2, -1], 30, shootingG, fsolve, pcModHopfNormal)
-
-    #par_list_nat,x_nat = continuation('natural',cubic,np.array([1,1,1]),[2],0,[-2,2],200,discretisation= lambda x:x,solver=fsolve,pc=None)
-    #par_list_ps,x_ps = continuation('pseudo',cubic,np.array([1,1,1]),[2],0,[-2,2],200,lambda x:x,fsolve,None)
-
-    plt.plot(par_list_nat,x_nat[:,0])
-    plt.plot(par_list_ps,x_ps[:,0])
-
-    plt.grid()
+    """
+    Plotting beta against ||x|| for both continuation methods
+    """
+    # excluding T from x
+    norm_x_nat = scipy.linalg.norm(x_nat[:,:-1], axis=1, keepdims=True)
+    norm_x_ps = scipy.linalg.norm(x_ps[:,:-1], axis=1, keepdims=True)
+    plt.plot(par_list_nat, norm_x_nat[:, 0], label='Nat. Param.')
+    plt.plot(par_list_ps, norm_x_ps[:, 0], label='Pseudo-arclength')
+    plt.xlabel('beta')
+    plt.ylabel('||x||')
+    plt.legend()
     plt.show()
+
+    """
+    It can be seen there is a fold at around beta = -0.25
+    Natural parameter continuation fails after the fold as expected.
+    Pseudo-arclength continuation succeeds and follows the curve around the fold.
+    """
+
+    """
+    Example 4: Numerical Continuation on a PDE
+    See solve_pde.py for more information on solve_diffusive_pde() and related functions
+    """
+    """
+    The continuation() function can be used to perform numerical continuation on diffusive PDEs in order to track their
+    steady states as a parameter varies.
+    
+    It is slightly more complicated to use continuation on a PDE. The below code demonstrates how.
+    """
+    """
+    The PDE being used as an example is the 1D heat equation with homogenous Dirichlet boundary conditions
+    u(0,t) = u(L,t) = 0  
+    """
+
+    """
+    A function, f(u,args) must be defined which takes the PDE parameters as its args.
+    It then passes them to solve_diffusive_pde() with the specified solving method and boundary type.
+    The boundary condition and initial condition functions are defined with the function.
+    """
+
+
+    def pde_func(u, args):  # args [kappa, L, T , mx , mt]
+        """
+        The functions describing the boundary conditions and initial condition must be defined.
+        """
+        """
+        boundary conditions u(0,t) = 0, u(L,t) = 0
+        """
+
+        def l_boundary(x, t):
+            return 0
+
+        def r_boundary(x, t):
+            return 0
+
+        """
+        initial condition
+        """
+
+        def initial(x, t, L):
+            # initial temperature distribution
+            y = np.sin(pi * x / L)
+            return y
+
+        kappa = args[0]
+        L = args[1]
+        T = args[2]
+        mx = args[3]
+        mt = args[4]
+
+        # values passed to solve_diffusive_pde()
+        x, u_j = solve_diffusive_pde('crank', kappa, L, T, mx, mt, 'dirichlet', l_boundary, r_boundary, initial,
+                                     ic_args=L)
+        # PDE solution returned
+        return u_j
+
+
+    """
+    a solver must be defined in the form f(f,u,args) which takes pde_func and its args and simply returns the function
+    """
+
+
+    def pde_solve(f, u, args):
+        return f(u, args)
+
+
+    """
+    pde numerical values
+    """
+    kappa = 1
+    L = 2
+    T = 0.5
+    mx = 100
+    mt = 1000
+
+    # values put in an array to pass to pde_func()
+    args = np.array([kappa, L, T, mx, mt])
+
+    """
+    The above function are then passed to continuation()
+    u0 is simply np.ones(mx+1) - value doesnt matter, just needs to be right size.
+    discretisation = lambda x:x
+    the parameter to vary, the range to vary it over, and how many intervals it is split into are selected as normal.
+    In this case T is being varied from 0.5 to 5.
+    """
+    par_list, u = continuation('natural', pde_func, np.ones(mx + 1), args, 0, [0.5, 5], 10, lambda x: x, pde_solve)
+
+    # get x values to plot u against
+    x = np.linspace(0, L, mx + 1)
+
+    # u needs to be transposed before plotting to make matplotlib happy
+    plt.plot(x, np.transpose(u))
+    plt.xlabel('x')
+    plt.ylabel(f'u(x,T)')
+    # generating legend labels from par_list
+    labels = [f"T = {T}" for T in par_list]
+    plt.legend(labels)
+    plt.show()
+
+    """
+    The figures shows the solutions of the PDE plotted for different values of T. We can see that as T increases the
+    PDE approaches the steady state. In this case the steady state can be seen to be u(x, inf) = 0.
+    """
+
+    """
+    Example 5: More numerical continuation on PDEs.
+    """
+    """
+    The PDE from Example 2 of solve_pde.main() is being used. It has Neumann boundary conditions and a source term.
+    """
+
+
+    def pde_func(u, args):  # args [kappa, L, T , mx , mt]
+        """
+        The functions describing the boundary conditions and initial condition must be defined.
+        """
+        """
+        boundary conditions du/dx(0, t) = t, du/dx(L, t) = 1
+        """
+
+        def l_boundary(x, t):
+            return 0
+
+        def r_boundary(x, t):
+            return 1
+
+        """
+        initial condition
+        """
+
+        def initial(x, t, L):
+            # initial temperature distribution
+            y = np.sin(pi * x / L)
+            return y
+
+        """
+        source term F(x,t) = x + t
+        """
+
+        def source(x, t):
+            return x + t
+
+        kappa = args[0]
+        L = args[1]
+        T = args[2]
+        mx = args[3]
+        mt = args[4]
+
+        # values passed to solve_diffusive_pde()
+        x, u_j = solve_diffusive_pde('crank', kappa, L, T, mx, mt, 'neumann', l_boundary, r_boundary, initial, source,
+                                     ic_args=L)
+        # PDE solution returned
+        return u_j
+
+
+    """
+    pde numerical values
+    """
+    kappa = 1
+    L = 1
+    T = 0.5
+    mx = 100
+    mt = 1000
+
+    # values put in an array to pass to pde_func()
+    args = np.array([kappa, L, T, mx, mt])
+
+    """
+    performing numerical continuation as in Example 4, and plotting the solutions.
+    The solver is the pde_solve() function defined in Example 4.
+    """
+    par_list, u = continuation('natural', pde_func, np.ones(mx + 1), args, kappa, [1, 10], 4, lambda x: x, pde_solve)
+
+    # get x values to plot u against
+    x = np.linspace(0, L, mx + 1)
+
+    # u needs to be transposed before plotting to make matplotlib happy
+    plt.plot(x, np.transpose(u))
+    plt.xlabel('x')
+    plt.ylabel(f'u(x,0.5)')
+    # generating legend labels from par_list
+    labels = [f"kappa = {kappa}" for kappa in par_list]
+    plt.legend(labels)
+    plt.show()
+
+    """
+    The figure shows the PDE solutions for 4 different values of kappa.
+    """

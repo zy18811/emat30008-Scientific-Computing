@@ -184,7 +184,7 @@ def input_tests():
         print("Some input tests failed :(")
         print("___________")
         print("Tests Failed:")
-        [print(fail + ' test') for fail in failed_tests]
+        [print(fail) for fail in failed_tests]
 
 
 def value_tests():
@@ -578,7 +578,7 @@ def value_tests():
         print("Some value tests failed :(")
         print("___________")
         print("Tests Failed:")
-        [print(fail + ' test') for fail in failed_tests]
+        [print(fail) for fail in failed_tests]
 
 
 def main():

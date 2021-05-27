@@ -1,7 +1,8 @@
+import matplotlib.pyplot as plt
 import numpy as np
 from scipy.optimize import fsolve
-from newtonrhapson import newton
-from solve_ode import solve_ode, integer_float_input_check
+from periodfinderforcheck import manual_period_finder
+from solve_ode import solve_ode, integer_float_array_input_check
 
 """
 Functions implementing numerical shooting techniques to find the periodic orbits of ODEs/systems of ODEs.
@@ -12,7 +13,7 @@ def orbit_shooting(ode, u0, pc, solver, *args):
     """
     Uses numerical shooting to locate the periodic orbit, if any, of a given ODE/system of ODEs.
     The orbit is defined by coordinates of its starting point and its time period.
-    :param ode: Function defining ODE(s) to solve in the form f(t,x,*args) which returns derivative value at (t,x)
+    :param ode: Function defining ODE(s) to find orbit of in the form f(t,x,*args) which returns derivative at (t,x)
     :param u0: Numpy array of the initial guess for location of periodic orbit
     :param pc: Phase condition
     :param solver: Solver to be used - fsolve or newton. Fsolve performs better
@@ -23,7 +24,7 @@ def orbit_shooting(ode, u0, pc, solver, *args):
     """
     checks type of u0 - see solve_ode.py for function details
     """
-    integer_float_input_check("u0", u0)
+    integer_float_array_input_check("u0", u0)
 
     """
     checks if ode is a function. If it is checks if it returns an output in the right shape. Raises an error if not
@@ -109,27 +110,114 @@ def shootingG(ode):
 
 
 def main():
-    def pc(u0):
-        x = u0[0]
-        y = u0[1]
-        a = 1
-        d = 0.1
-        b = 0.1
-        p = x * (1 - x) - (a * x * y) / (d + x)
-        return p
+    """
+    Function for predator-prey equations
+    """
 
-    def func(t, y):
+    def predator_prey(t, y, args):
         x = y[0]
         y = y[1]
-        a = 1
-        d = 0.1
-        b = 0.16
+
+        a = args[0]
+        d = args[1]
+        b = args[2]
+
         dxdt = x * (1 - x) - (a * x * y) / (d + x)
         dydt = b * y * (1 - (y / x))
         return np.array([dxdt, dydt])
 
-    x0 = np.array([1999, 1000, 0])
-    print(orbit_shooting(func, x0, pc, solver=fsolve))
+    """
+    Phase condition for predator-prey equations
+    """
+
+    def pc_predator_prey(u0, args):
+        return predator_prey(0, u0, args)[0]
+
+    """
+    initial values guess for predator-prey equations
+    """
+    predator_prey_u0 = np.array([0.07, 0.16, 23])
+
+    """
+    b = 0.4 > 0.26 case
+    """
+    args = [1, 0.1, 0.4]
+    """
+    solving predator-prey equations with orbit coordinates as initial conditions for t = 0 to t = 100
+    Using RK4 with h = 0.01
+    """
+    t = np.linspace(0, 1000, 1000)
+    predator_prey_solution = solve_ode(predator_prey, predator_prey_u0[:-1], t, 'rk4', 0.01, True, args)
+    predator_prey_solution_x = predator_prey_solution[0]
+    predator_prey_solution_y = predator_prey_solution[1]
+
+    """
+    Plotting y against x 
+    """
+    plt.plot(predator_prey_solution_x, predator_prey_solution_y)
+    plt.ylabel('y')
+    plt.xlabel('x')
+    plt.show()
+
+    """
+    b = 0.15 < 0.26 case
+    """
+    args = [1, 0.1, 0.15]
+
+    """
+    solving predator-prey equations with orbit coordinates as initial conditions for t = 0 to t = 100
+    Using RK4 with h = 0.01
+    """
+    t = np.linspace(0, 1000, 1000)
+    predator_prey_solution = solve_ode(predator_prey, predator_prey_u0[:-1], t, 'rk4', 0.01, True, args)
+    predator_prey_solution_x = predator_prey_solution[0]
+    predator_prey_solution_y = predator_prey_solution[1]
+    """
+    Plotting y against x 
+    """
+    plt.plot(predator_prey_solution_x, predator_prey_solution_y)
+    plt.ylabel('y')
+    plt.xlabel('x')
+    plt.show()
+
+    """
+    It can be seen from the figures that the predator prey equations have different behaviours in the long term limit
+    depending on the value of b. For b > 0.26, the values of x and y tend towards a steady state value. This is shown on
+    the plot of x against y as an inwards spiral towards a point. For b < 0.26, the equations fall into a period orbit.
+    This is shown in the plot of x against y as a circular shape.
+    """
+    """
+    The orbit can be manually found by analysing the time series using manual_period_finder() from
+    periodfinderforcheck.py
+    """
+    manual_orbit = manual_period_finder(t, predator_prey_solution_x, predator_prey_solution_y)
+    """
+    Plotting the location of this orbit on the graph of y against x
+    """
+    plt.plot(manual_orbit[0], manual_orbit[1], 'go', label="Manually found orbit")
+    plt.plot(predator_prey_solution_x, predator_prey_solution_y)
+    plt.ylabel('y')
+    plt.xlabel('x')
+    plt.legend()
+    plt.show()
+    """
+    Now trying to find the same orbit using numerical shooting by using the orbit_shooting() function
+    """
+    shooting_orbit = orbit_shooting(predator_prey, predator_prey_u0, pc_predator_prey, fsolve, args)
+    """
+    Plotting this orbit onto the figure as well.
+    """
+    plt.plot(shooting_orbit[0], shooting_orbit[1], 'ro', label="Numerical Shooting Orbit")
+    plt.plot(manual_orbit[0], manual_orbit[1], 'go', label="Manually Found Orbit")
+    plt.plot(predator_prey_solution_x, predator_prey_solution_y)
+    plt.ylabel('y')
+    plt.xlabel('x')
+    plt.legend()
+    plt.show()
+
+    """
+    It can be seen from the figure that the two orbits are the same and that the numerical shooting was successful.
+    """
 
 
 if __name__ == "__main__":
