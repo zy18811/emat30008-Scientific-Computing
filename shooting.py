@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from scipy.optimize import fsolve
 from periodfinderforcheck import manual_period_finder
-from solve_ode import solve_ode, integer_float_input_check
+from solve_ode import solve_ode, integer_float_array_input_check
 
 """
 Functions implementing numerical shooting techniques to find the periodic orbits of ODEs/systems of ODEs.
@@ -24,7 +24,7 @@ def orbit_shooting(ode, u0, pc, solver, *args):
     """
     checks type of u0 - see solve_ode.py for function details
     """
-    integer_float_input_check("u0", u0)
+    integer_float_array_input_check("u0", u0)
 
     """
     checks if ode is a function. If it is checks if it returns an output in the right shape. Raises an error if not

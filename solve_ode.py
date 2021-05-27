@@ -59,7 +59,7 @@ def solve_to(step, f, x1, t1, t2, deltat_max, *args):
     return x1
 
 
-def integer_float_input_check(param_name, param):
+def integer_float_array_input_check(param_name, param):
     """
     Function to check type of x0, t_arr, and delat_max values. Raises a TypeError if not integer of float
     :param param_name: Name of parameter to check
@@ -87,17 +87,17 @@ def solve_ode(f, x0, t_arr, method, deltat_max, system=False, *args):
     """
     checks type(s) of x0
     """
-    integer_float_input_check('x0', x0)
+    integer_float_array_input_check('x0', x0)
 
     """
     checks type of t_arr
     """
-    integer_float_input_check('t_arr', t_arr)
+    integer_float_array_input_check('t_arr', t_arr)
 
     """
     checks type of deltat_max
     """
-    integer_float_input_check('deltat_max', deltat_max)
+    integer_float_array_input_check('deltat_max', deltat_max)
 
     """
     checks if f is a function. If it is checks if it returns an output in the right shape. Raises an error if not

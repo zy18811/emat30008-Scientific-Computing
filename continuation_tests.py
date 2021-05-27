@@ -374,7 +374,7 @@ def input_tests():
         print("Some input tests failed :(")
         print("___________")
         print("Tests Failed:")
-        [print(fail + ' test') for fail in failed_tests]
+        [print(fail) for fail in failed_tests]
 
 
 def value_tests():
@@ -612,7 +612,7 @@ def value_tests():
         print("Some value tests failed :(")
         print("___________")
         print("Tests Failed:")
-        [print(fail + ' test') for fail in failed_tests]
+        [print(fail) for fail in failed_tests]
 
 
 def main():
@@ -621,7 +621,7 @@ def main():
     print("Value Tests:")
     print("It is the expected behaviour that tests using natural parameter continuation will fail for values after the "
           "bifurcation.\nThis is because at folds (saddle-node bifurcations) the search line does not intersect with "
-          "the curve.\nHowever, they are included for illustrative purposes.")
+          "the curve.\nHowever, they are included for illustrative purposes.\n")
     value_tests()
 
 

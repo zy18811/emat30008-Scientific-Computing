@@ -1,11 +1,12 @@
 import warnings
 from math import pi
-from scipy.optimize import fsolve
 import matplotlib.pyplot as plt
 import numpy as np
 import scipy.sparse
 import scipy.sparse.linalg
-from numericalContinuation import continuation
+
+from solve_ode import integer_float_array_input_check
+
 
 def solve_diffusive_pde(method, kappa, L, T, mx, mt, boundary_type, l_boundary_condition_func,
                         r_boundary_condition_func, initial_condition_func,
@@ -88,16 +89,24 @@ def solve_diffusive_pde(method, kappa, L, T, mx, mt, boundary_type, l_boundary_c
         if callable(func):
 
             # checks if it works with correct inputs
+            # exception for initial_condition() which should return an array, not a scalar
+            if func_name == 'initial_condition_func':
+                inp = np.array([1])
+                check = integer_float_array_input_check
+            else:
+                inp = 1
+                check = param_int_or_float
             try:
                 if args is not None:
-                    test = func(1, 1, args)
+                    test = func(inp, inp, args)
                 else:
-                    test = func(1, 1)
+                    test = func(inp, inp)
             except:
                 raise TypeError(f"{func_name} must take inputs in the form f(x, t) or have arguments provided.")
 
-            # checks that function returns a float or int
-            param_int_or_float(f"{func_name} output", test)
+            # checks that function returns a float or int or array of float or ints
+            check(f"{func_name} output", test)
+
         else:
             raise TypeError(f"{func_name} is not a function.")
 
@@ -117,14 +126,14 @@ def solve_diffusive_pde(method, kappa, L, T, mx, mt, boundary_type, l_boundary_c
     greater_than_zero('T', T)
 
     # checks that mx is an integer
-    if not isinstance(mx, (int,float,np.float_, np.int_)):
+    if not isinstance(mx, (int, float, np.float_, np.int_)):
         raise TypeError(f"mx: {mx} is not an integer.")
     elif not float(mx).is_integer():
         raise TypeError(f"mx: {mx} is not an integer.")
     else:
         mx = int(mx)
     # checks that mt is an integer
-    if not isinstance(mt, (int, float, np.int_,np.int_)):
+    if not isinstance(mt, (int, float, np.int_, np.int_)):
         raise TypeError(f"mt: {mt} is not an integer.")
     elif not float(mt).is_integer():
         raise TypeError(f"mt: {mt} is not an integer.")
@@ -216,7 +225,7 @@ def solve_diffusive_pde(method, kappa, L, T, mx, mt, boundary_type, l_boundary_c
         # else no source --> 0
         if source is not None:
             def F(t):
-                return source(x[1:mx], t)
+                return source(x, t)
         else:
             def F(t):
                 return 0
@@ -231,7 +240,7 @@ def solve_diffusive_pde(method, kappa, L, T, mx, mt, boundary_type, l_boundary_c
 
     elif boundary_type == 'periodic':
         # checks that left and right boundary conditions are the same
-        if l_boundary_condition(1,1) != r_boundary_condition(1,1):
+        if l_boundary_condition(1, 1) != r_boundary_condition(1, 1):
             raise ValueError("For boundary_type_periodic the left and right boundary conditions must be the same.")
         mat_size = mx  # neumann boundaries need a matrix of size m x m
         u_j = initial_condition(x[:mx - 1], 0)
@@ -308,11 +317,11 @@ def solve_diffusive_pde(method, kappa, L, T, mx, mt, boundary_type, l_boundary_c
         # solves matrix equation to get updated u_j
         u_j = scipy.sparse.linalg.spsolve(mat1, mat2 * u_j + vec)
 
-    # adds boundary conditions to start and end if Dirichlet boundaries
+    # adds boundary conditions to start and end if Dirichlet boundary condition
     if boundary_type == 'dirichlet':
         u_j = np.concatenate(([l_boundary_condition(0, T)], u_j, [r_boundary_condition(L, T)]))
 
-    # sets u_m = u_0 if periodic boundaries
+    # sets u_m = u_0 if periodic boundary condition
     if boundary_type == 'periodic':
         u_j = np.append(u_j, u_j[0])
 
@@ -320,18 +329,23 @@ def solve_diffusive_pde(method, kappa, L, T, mx, mt, boundary_type, l_boundary_c
     return x, u_j
 
 
-
-
-
 def main():
+    """
+    Example 1: simple 1D heat equation
+    """
 
-    def u_exact(x, t, args):
-        kappa = args[0]
-        L = args[1]
-        # the exact solution
-        y = \
-            np.exp(-kappa * (pi ** 2 / L ** 2) * t) * np.sin(pi * x / L)
-        return y
+    """
+    values for heat equation
+    """
+    kappa = 1
+    L = 2
+    T = 0.5
+    mx = 10
+    mt = 1000
+
+    """
+    boundary conditions u(0,t) = 0, u(L,t) = 0
+    """
 
     def l_boundary(x, t):
         return 0
@@ -339,53 +353,34 @@ def main():
     def r_boundary(x, t):
         return 0
 
+    """
+    initial condition
+    """
+
     def initial(x, t, L):
         # initial temperature distribution
         y = np.sin(pi * x / L)
         return y
 
-    def pde_discretisation(u, args):  # args = [kappa, L , T , mx, mt]
-        kappa = args[0]
-        L = args[1]
-        T = args[2]
-        mx = args[3]
-        mt = args[4]
+    """
+    exact solution
+    """
 
-        x, u_j = solve_diffusive_pde('crank', kappa, L, T, mx, mt, 'dirichlet',l_boundary,r_boundary,initial,ic_args=L)
+    def heat_1D_exact(x, t, kappa, L):
+        # the exact solution
+        y = np.exp(-kappa * (pi ** 2 / L ** 2) * t) * np.sin(pi * x / L)
+        return y
 
-        return u_j.max()
-
-    def cont_pde_solve(func,u0,args):
-        return func(u0,args)
-
-    kappa = 1
-    L = 1
-    T = 0.5
-    mx = 10
-    mt = 1000
-
-    u0 = [kappa,T,mx,mt]
-    args = np.array([kappa,L,T,mx,mt])
-    par_list, x = continuation('natural',pde_discretisation,2,args,0,[0.5,5],10,lambda x:x,cont_pde_solve)
-    plt.show()
-    plt.plot(par_list,x)
-    plt.show()
-
-
+    """
+    plotting exact solution
+    """
     xx = np.linspace(0, L, 250)
-    exact = u_exact(xx, T, [kappa, L])
-
+    exact = heat_1D_exact(xx, T, kappa, L)
     plt.plot(xx, exact, label='exact')
 
-    x = np.linspace(0, L, mx + 1)  # mesh points in space
-    t = np.linspace(0, T, mt + 1)  # mesh points in time
-
-    deltax = x[1] - x[0]  # grid spacing in x
-    deltat = t[1] - t[0]  # grid spacing in t
-    lmbda = kappa * deltat / (deltax ** 2)  # mesh fourier number
-
-
-    '''
+    """
+    approximating solution using 3 methods - forward Euler, backward Euler, Crank-Nicholson
+    """
     f_x, f_u = solve_diffusive_pde('forward', kappa, L, T, mx, mt, 'dirichlet', l_boundary, r_boundary, initial,
                                    ic_args=L)
 
@@ -394,17 +389,93 @@ def main():
 
     c_x, c_u = solve_diffusive_pde('crank', kappa, L, T, mx, mt, 'dirichlet', l_boundary, r_boundary, initial,
                                    ic_args=L)
-    
+
+    """
+    plotting approximate solutions
+    """
     plt.plot(f_x, f_u, label='forward')
     plt.plot(b_x, b_u, label='backward')
     plt.plot(c_x, c_u, label='crank')
 
     plt.legend()
-    plt.grid()
     plt.xlabel('x')
     plt.ylabel('u(x,0.5)')
     plt.show()
-    '''
+
+    """
+    It can be seen that all 3 methods provide a good approximation of the true solution.
+    """
+
+    """
+    Example 2: Neumann boundary conditions with source term
+    """
+    kappa = 1
+    L = 2
+    T = 0.5
+    mx = 10
+    mt = 1000
+
+    """
+    boundary conditions du/dx(0, t) = t, du/dx(L, t) = 1
+    """
+
+    def l_boundary(x, t):
+        return 0
+
+    def r_boundary(x, t):
+        return 1
+
+    """
+    initial condition
+    """
+
+    def initial(x, t, L):
+        # initial temperature distribution
+        y = np.sin(pi * x / L)
+        return y
+
+    """
+    source term F(x,t) = x + t
+    """
+
+    def source(x, t):
+        return x + t
+
+    """
+    approximating solution using 3 methods - forward Euler, backward Euler, Crank-Nicholson
+    """
+    f_x, f_u = solve_diffusive_pde('forward', kappa, L, T, mx, mt, 'dirichlet', l_boundary, r_boundary, initial,
+                                   source, ic_args=L)
+
+    b_x, b_u = solve_diffusive_pde('backward', kappa, L, T, mx, mt, 'dirichlet', l_boundary, r_boundary, initial,
+                                   source, ic_args=L)
+
+    c_x, c_u = solve_diffusive_pde('crank', kappa, L, T, mx, mt, 'dirichlet', l_boundary, r_boundary, initial,
+                                   source, ic_args=L)
+
+    """
+    plotting approximate solutions
+    """
+    plt.plot(f_x, f_u, label='forward')
+    plt.plot(b_x, b_u, label='backward')
+    plt.plot(c_x, c_u, label='crank')
+
+    plt.legend()
+    plt.xlabel('x')
+    plt.ylabel('u(x,0.5)')
+    plt.show()
+
+    """
+    There is not a known exact solution to compare against this time. However, the shape of the approximate solution
+    curve makes sense given the physical interpretation of the conditions, so I am very sure it is correct.
+    """
+
+    """
+    Numerical continuation can be performed on PDEs to explore how their dynamics change as a parameter is varied.
+    2 examples of this are shown at the end of numericalContinuation.main()
+    """
+
+
 
 if __name__ == '__main__':
     main()

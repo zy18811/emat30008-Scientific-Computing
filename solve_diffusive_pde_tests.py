@@ -511,25 +511,392 @@ def input_tests():
         print("Some input tests failed :(")
         print("___________")
         print("Tests Failed:")
-        [print(fail + ' test') for fail in failed_tests]
+        [print(fail) for fail in failed_tests]
 
 
 def value_tests():
     """
     Tests for whether solve_diffusive_pde() produces correct output values
+
+    It is the expected behaviour that tests using the forward Euler method will fail for values which cause the
+    stability k = kappa * deltat / deltax**2 > 1/2 as the method is only conditionally stable. However, they are
+    included for illustrative purposes. On the other hand, the backwards Euler and Crank-Nicholson methods are
+    unconditionally stable and should pass for all values.
     """
-
-
-
-
-
-
-
     all_tests_passed = True
     failed_tests = []
     """
     Tests Start
     """
+    """
+    1D Heat Equation
+    """
+    """
+    exact solution for 1D heat equation
+    """
+
+    def heat_1D_exact(x, t, kappa, L):
+        # the exact solution
+        y = np.exp(-kappa * (pi ** 2 / L ** 2) * t) * np.sin(pi * x / L)
+        return y
+
+    """
+    left dirichlet boundary condition for 1D heat equation
+    """
+
+    def heat_1D_l_boundary(x, t):
+        return 0
+
+    """
+    right dirichlet boundary condition for 1D heat equation
+    """
+
+    def heat_1D_r_boundary(x, t):
+        return 0
+
+    """
+    initial condition for 1D heat equation
+    """
+
+    def heat_1D_initial(x, t, L):
+        # initial temperature distribution
+        y = np.sin(pi * x / L)
+        return y
+
+    """
+    PDE values, k = 0.45 < 1/2 --> forward Euler stable
+    """
+    kappa = 1
+    L = 1
+    T = 0.5
+    mx = 30
+    mt = 1000
+
+    """
+    simple 1D heat forward test k < 1/2 test
+    Testing accuracy for simple 1D heat equation using the forward Euler method
+    Compares with increasing tolerance until it is close enough or doesnt match with a tol of 0.1
+    """
+    x, heat_1D_forward_eul_sol = solve_diffusive_pde('forward', kappa, L, T, mx, mt, 'dirichlet', heat_1D_l_boundary,
+                                                     heat_1D_r_boundary, heat_1D_initial, ic_args=L)
+
+    # gets exact solution
+    heat_1D_true = heat_1D_exact(x, T, kappa, L)
+
+    # iterates through tol = 10^-10 to 0.1
+    match = False
+    for i in range(10, 0, -1):
+        if np.allclose(heat_1D_true, heat_1D_forward_eul_sol, atol=10 ** -i):
+            print(f"simple 1D heat forward k < 1/2: test passed, tol = {10 ** -i}")
+            match = True
+            break
+    if not match:
+        all_tests_passed = False
+        failed_tests.append("simple 1D heat forward k < 1/2")
+        print("simple 1D heat forward k < 1/2: test failed")
+
+    """
+    simple 1D heat backward k < 1/2 test
+    Testing accuracy for simple 1D heat equation using the backwards Euler method
+    Compares with increasing tolerance until it is close enough or doesnt match with a tol of 0.1.
+    """
+    x, heat_1D_backward_eul_sol = solve_diffusive_pde('backward', kappa, L, T, mx, mt, 'dirichlet', heat_1D_l_boundary,
+                                                      heat_1D_r_boundary, heat_1D_initial, ic_args=L)
+
+    # gets exact solution
+    heat_1D_true = heat_1D_exact(x, T, kappa, L)
+
+    # iterates through tol = 10^-10 to 0.1
+    match = False
+    for i in range(10, 1, -1):
+        if np.allclose(heat_1D_true, heat_1D_backward_eul_sol, atol=10 ** -i):
+            print(f"simple 1D heat backward k < 1/2: test passed, tol = {10 ** -i}")
+            match = True
+            break
+    if not match:
+        all_tests_passed = False
+        failed_tests.append("simple 1D heat backward k < 1/2")
+        print("simple 1D heat backward k < 1/2: test failed")
+
+    """
+    simple 1D heat crank k < 1/2 test
+    Testing accuracy for simple 1D heat equation using the Crank-Nicholson method
+    Compares with increasing tolerance until it is close enough or doesnt match with a tol of 0.1.
+    """
+    x, heat_1D_crank_sol = solve_diffusive_pde('crank', kappa, L, T, mx, mt, 'dirichlet', heat_1D_l_boundary,
+                                                   heat_1D_r_boundary, heat_1D_initial, ic_args=L)
+    # gets exact solution
+    heat_1D_true = heat_1D_exact(x, T, kappa, L)
+
+    # iterates through tol = 10^-10 to 0.1
+    match = False
+    for i in range(10, 0, -1):
+        if np.allclose(heat_1D_true, heat_1D_crank_sol, atol=10 ** -i):
+            print(f"simple 1D heat crank k < 1/2: test passed, tol = {10 ** -i}")
+            match = True
+            break
+    if not match:
+        all_tests_passed = False
+        failed_tests.append("simple 1D heat crank k < 1/2")
+        print("simple 1D heat crank k < 1/2: test failed")
+
+    """
+    PDE values, k = 500 >>> 1/2 --> forward Euler unstable
+    """
+    kappa = 1
+    L = 1
+    T = 0.5
+    mx = 1000
+    mt = 1000
+
+    """
+    simple 1D heat forward test k > 1/2 test
+    Testing accuracy for simple 1D heat equation using the forward Euler method
+    Compares with increasing tolerance until it is close enough or doesnt match with a tol of 0.1
+    Expected to fail as forward Euler is unstable for k > 1/2
+    """
+    x, heat_1D_forward_eul_sol = solve_diffusive_pde('forward', kappa, L, T, mx, mt, 'dirichlet', heat_1D_l_boundary,
+                                                     heat_1D_r_boundary, heat_1D_initial, ic_args=L)
+
+    # gets exact solution
+    heat_1D_true = heat_1D_exact(x, T, kappa, L)
+
+    # iterates through tol = 10^-10 to 0.1
+    match = False
+    for i in range(10, 0, -1):
+        if np.allclose(heat_1D_true, heat_1D_forward_eul_sol, atol=10 ** -i):
+            print(f"simple 1D heat forward k > 1/2: test passed, tol = {10 ** -i}")
+            match = True
+            break
+    if not match:
+        all_tests_passed = False
+        failed_tests.append("simple 1D heat forward k > 1/2 - Expected")
+        print("simple 1D heat forward k > 1/2: test failed - Expected")
+
+    """
+    simple 1D heat backward k > 1/2 test
+    Testing accuracy for simple 1D heat equation using the backwards Euler method
+    Compares with increasing tolerance until it is close enough or doesnt match with a tol of 0.1.
+    """
+    x, heat_1D_backward_eul_sol = solve_diffusive_pde('backward', kappa, L, T, mx, mt, 'dirichlet', heat_1D_l_boundary,
+                                                      heat_1D_r_boundary, heat_1D_initial, ic_args=L)
+
+    # gets exact solution
+    heat_1D_true = heat_1D_exact(x, T, kappa, L)
+
+    # iterates through tol = 10^-10 to 0.1
+    match = False
+    for i in range(10, 0, -1):
+        if np.allclose(heat_1D_true, heat_1D_backward_eul_sol, atol=10 ** -i):
+            print(f"simple 1D heat backward k > 1/2: test passed, tol = {10 ** -i}")
+            match = True
+            break
+    if not match:
+        all_tests_passed = False
+        failed_tests.append("simple 1D heat backward k > 1/2")
+        print("simple 1D heat backward k > 1/2: test failed")
+
+    """
+    simple 1D heat crank k > 1/2 test
+    Testing accuracy for simple 1D heat equation using the Crank-Nicholson method
+    Compares with increasing tolerance until it is close enough or doesnt match with a tol of 0.1.
+    """
+    x, heat_1D_crank_sol = solve_diffusive_pde('crank', kappa, L, T, mx, mt, 'dirichlet', heat_1D_l_boundary,
+                                                   heat_1D_r_boundary, heat_1D_initial, ic_args=L)
+    # gets exact solution
+    heat_1D_true = heat_1D_exact(x, T, kappa,L)
+
+    # iterates through tol = 10^-20 to 0.1
+    match = False
+    for i in range(20, 0, -1):
+        if np.allclose(heat_1D_true, heat_1D_crank_sol, atol=10 ** -i):
+            print(f"simple 1D heat crank k > 1/2: test passed, tol = {10 ** -i}")
+            match = True
+            break
+    if not match:
+        all_tests_passed = False
+        failed_tests.append("simple 1D heat crank k > 1/2")
+        print("simple 1D heat crank k > 1/2: test failed")
+
+    """
+    1D heat equation - non-homogenous Dirichlet boundary conditions
+    """
+    """
+    non-homogenous Dirichlet boundary conditions
+    """
+    def non_homog_l(x,t):
+        return 1
+
+    def non_homog_r(x,t):
+        return 2
+
+    """
+    Exact solution for above non-homogenous Dirichlet boundary conditions
+    """
+    def non_homog_exact(x,t,kappa,L):
+        # the exact solution
+        y = np.exp(-kappa * (pi ** 2 / L ** 2) * t) * np.sin(pi * x / L) + 1 + (2 - 1) * x / L
+        return y
+
+    """
+    PDE values, k = 0.45 < 1/2 --> forward Euler stable
+    """
+    kappa = 1
+    L = 1
+    T = 0.5
+    mx = 30
+    mt = 1000
+
+    """
+    non-homog 1D heat forward test k < 1/2 test
+    Testing accuracy for non-homog 1D heat equation using the forward Euler method
+    Compares with increasing tolerance until it is close enough or doesnt match with a tol of 0.1
+    """
+    x, non_homog_forward_eul_sol = solve_diffusive_pde('forward', kappa, L, T, mx, mt, 'dirichlet', non_homog_l,
+                                                     non_homog_r, heat_1D_initial, ic_args=L)
+
+    # gets exact solution
+    non_homog_true = non_homog_exact(x, T,kappa,L)
+
+    # iterates through tol = 10^-10 to 0.1
+    match = False
+    for i in range(10, 0, -1):
+        if np.allclose(non_homog_true, non_homog_forward_eul_sol, atol=10 ** -i):
+            print(f"non-homog 1D heat forward k < 1/2: test passed, tol = {10 ** -i}")
+            match = True
+            break
+    if not match:
+        all_tests_passed = False
+        failed_tests.append("non-homog 1D heat forward k < 1/2")
+        print("non-homog 1D heat forward k < 1/2: test failed")
+
+    """
+    non-homog 1D heat backward k < 1/2 test
+    Testing accuracy for non-homog 1D heat equation using the backwards Euler method
+    Compares with increasing tolerance until it is close enough or doesnt match with a tol of 0.1.
+    """
+    x, non_homog_backward_eul_sol = solve_diffusive_pde('backward', kappa, L, T, mx, mt, 'dirichlet', non_homog_l,
+                                                      non_homog_r, heat_1D_initial, ic_args=L)
+
+    # gets exact solution
+    non_homog_true = non_homog_exact(x, T,kappa,L)
+
+    # iterates through tol = 10^-10 to 0.1
+    match = False
+    for i in range(10, 0, -1):
+        if np.allclose(non_homog_true, non_homog_backward_eul_sol, atol=10 ** -i):
+            print(f"non-homog 1D heat backward k < 1/2: test passed, tol = {10 ** -i}")
+            match = True
+            break
+    if not match:
+        all_tests_passed = False
+        failed_tests.append("non-homog 1D heat backward k < 1/2")
+        print("non-homog 1D heat backward k < 1/2: test failed")
+
+    """
+    non-homog 1D heat crank k < 1/2 test
+    Testing accuracy for non-homog 1D heat equation using the Crank-Nicholson method
+    Compares with increasing tolerance until it is close enough or doesnt match with a tol of 0.1.
+    """
+    x, non_homog_crank_sol = solve_diffusive_pde('crank', kappa, L, T, mx, mt, 'dirichlet', non_homog_l,
+                                                   non_homog_r, heat_1D_initial, ic_args=L)
+    # gets exact solution
+    non_homog_true = non_homog_exact(x, T,kappa,L)
+
+    # iterates through tol = 10^-10 to 0.1
+    match = False
+    for i in range(10, 0, -1):
+        if np.allclose(non_homog_true, non_homog_crank_sol, atol=10 ** -i):
+            print(f"non-homog 1D heat crank k < 1/2: test passed, tol = {10 ** -i}")
+            match = True
+            break
+    if not match:
+        all_tests_passed = False
+        failed_tests.append("non-homog 1D heat crank k < 1/2")
+        print("non-homog 1D heat crank k < 1/2: test failed")
+
+    """
+    PDE values, k = 500 >>> 1/2 --> forward Euler unstable
+    """
+    kappa = 1
+    L = 1
+    T = 0.5
+    mx = 1000
+    mt = 1000
+
+    """
+    non-homog 1D heat forward test k > 1/2 test
+    Testing accuracy for non-homog 1D heat equation using the forward Euler method
+    Compares with increasing tolerance until it is close enough or doesnt match with a tol of 0.1
+    Expected to fail as forward Euler is unstable for k > 1/2
+    """
+    x, non_homog_forward_eul_sol = solve_diffusive_pde('forward', kappa, L, T, mx, mt, 'dirichlet', non_homog_l,
+                                                     non_homog_r, heat_1D_initial, ic_args=L)
+
+    # gets exact solution
+    non_homog_true = non_homog_exact(x, T,kappa,L)
+
+    # iterates through tol = 10^-10 to 0.1
+    match = False
+    for i in range(10, 0, -1):
+        if np.allclose(non_homog_true, non_homog_forward_eul_sol, atol=10 ** -i):
+            print(f"non-homog 1D heat forward k > 1/2: test passed, tol = {10 ** -i}")
+            match = True
+            break
+    if not match:
+        all_tests_passed = False
+        failed_tests.append("non-homog 1D heat forward k > 1/2 - Expected")
+        print("non-homog 1D heat forward k > 1/2: test failed - Expected")
+
+    """
+    non-homog 1D heat backward k > 1/2 test
+    Testing accuracy for non-homog 1D heat equation using the backwards Euler method
+    Compares with increasing tolerance until it is close enough or doesnt match with a tol of 0.1.
+    """
+    x, non_homog_backward_eul_sol = solve_diffusive_pde('backward', kappa, L, T, mx, mt, 'dirichlet', non_homog_l,
+                                                      non_homog_r, heat_1D_initial, ic_args=L)
+
+    # gets exact solution
+    non_homog_true = non_homog_exact(x, T,kappa,L)
+
+    # iterates through tol = 10^-10 to 0.1
+    match = False
+    for i in range(10, 0, -1):
+        if np.allclose(non_homog_true, non_homog_backward_eul_sol, atol=10 ** -i):
+            print(f"non-homog 1D heat backward k > 1/2: test passed, tol = {10 ** -i}")
+            match = True
+            break
+    if not match:
+        all_tests_passed = False
+        failed_tests.append("non-homog 1D heat backward k > 1/2")
+        print("non-homog 1D heat backward k > 1/2: test failed")
+
+    """
+    non-homog 1D heat crank k > 1/2 test
+    Testing accuracy for non-homog 1D heat equation using the Crank-Nicholson method
+    Compares with increasing tolerance until it is close enough or doesnt match with a tol of 0.1.
+    """
+    x, non_homog_crank_sol = solve_diffusive_pde('crank', kappa, L, T, mx, mt, 'dirichlet', non_homog_l,
+                                                   non_homog_r, heat_1D_initial, ic_args=L)
+    # gets exact solution
+    non_homog_true = non_homog_exact(x, T,kappa,L)
+
+    # iterates through tol = 10^-20 to 0.1
+    match = False
+    for i in range(20, 0, -1):
+        if np.allclose(non_homog_true, non_homog_crank_sol, atol=10 ** -i):
+            print(f"non-homog 1D heat crank k > 1/2: test passed, tol = {10 ** -i}")
+            match = True
+            break
+    if not match:
+        all_tests_passed = False
+        failed_tests.append("non-homog 1D heat crank k > 1/2")
+        print("non-homog 1D heat crank k > 1/2: test failed")
+
+
+
+
+
     """
     Results
     """
@@ -542,13 +909,17 @@ def value_tests():
         print("Some value tests failed :(")
         print("___________")
         print("Tests Failed:")
-        [print(fail + ' test') for fail in failed_tests]
+        [print(fail) for fail in failed_tests]
 
 
 def main():
     print("Input Tests:")
     input_tests()
     print("Value Tests:")
+    print("It is the expected behaviour that tests using the forward Euler method will fail for values which cause the"
+          " stability k = kappa * deltat / deltax**2 > 1/2 as the method is only conditionally stable.\n"
+          "However, they are included for illustrative purposes. On the other hand, the backwards Euler and4"
+          " Crank-Nicholson methods are unconditionally stable and should pass for all values.\n")
     value_tests()
 
 
