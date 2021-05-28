@@ -1,7 +1,7 @@
-import orbit_shooting_tests
-import solve_ode_tests
-import solve_diffusive_pde_tests
 import continuation_tests
+import orbit_shooting_tests
+import solve_diffusive_pde_tests
+import solve_ode_tests
 
 """
 runs all tests

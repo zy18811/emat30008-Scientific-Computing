@@ -1,5 +1,6 @@
 import warnings
 from math import pi
+
 import matplotlib.pyplot as plt
 import numpy as np
 import scipy.sparse
@@ -474,7 +475,6 @@ def main():
     Numerical continuation can be performed on PDEs to explore how their dynamics change as a parameter is varied.
     2 examples of this are shown at the end of numericalContinuation.main()
     """
-
 
 
 if __name__ == '__main__':

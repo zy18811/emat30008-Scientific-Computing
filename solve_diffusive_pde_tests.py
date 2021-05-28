@@ -400,7 +400,7 @@ def input_tests():
     """
     try:
         solve_diffusive_pde('crank', 1, 1, 1, 10, 1000, 'dirichlet', good_l_boundary_no_args,
-                            bad_return_type(), good_initial_condition_no_args)
+                            bad_return_type, good_initial_condition_no_args)
         all_tests_passed = False
         failed_tests.append("rb wrong output type")
         print("rb wrong output type: test failed")
@@ -452,7 +452,7 @@ def input_tests():
     """
     try:
         solve_diffusive_pde('crank', 1, 1, 1, 10, 1000, 'dirichlet', good_l_boundary_no_args,
-                            bad_input_shape(), good_initial_condition_no_args)
+                            bad_input_shape, good_initial_condition_no_args)
         all_tests_passed = False
         failed_tests.append("rb wrong input shape")
         print("rb wrong input shape: test failed")
@@ -624,7 +624,7 @@ def value_tests():
     Compares with increasing tolerance until it is close enough or doesnt match with a tol of 0.1.
     """
     x, heat_1D_crank_sol = solve_diffusive_pde('crank', kappa, L, T, mx, mt, 'dirichlet', heat_1D_l_boundary,
-                                                   heat_1D_r_boundary, heat_1D_initial, ic_args=L)
+                                               heat_1D_r_boundary, heat_1D_initial, ic_args=L)
     # gets exact solution
     heat_1D_true = heat_1D_exact(x, T, kappa, L)
 
@@ -702,9 +702,9 @@ def value_tests():
     Compares with increasing tolerance until it is close enough or doesnt match with a tol of 0.1.
     """
     x, heat_1D_crank_sol = solve_diffusive_pde('crank', kappa, L, T, mx, mt, 'dirichlet', heat_1D_l_boundary,
-                                                   heat_1D_r_boundary, heat_1D_initial, ic_args=L)
+                                               heat_1D_r_boundary, heat_1D_initial, ic_args=L)
     # gets exact solution
-    heat_1D_true = heat_1D_exact(x, T, kappa,L)
+    heat_1D_true = heat_1D_exact(x, T, kappa, L)
 
     # iterates through tol = 10^-20 to 0.1
     match = False
@@ -724,16 +724,18 @@ def value_tests():
     """
     non-homogenous Dirichlet boundary conditions
     """
-    def non_homog_l(x,t):
+
+    def non_homog_l(x, t):
         return 1
 
-    def non_homog_r(x,t):
+    def non_homog_r(x, t):
         return 2
 
     """
     Exact solution for above non-homogenous Dirichlet boundary conditions
     """
-    def non_homog_exact(x,t,kappa,L):
+
+    def non_homog_exact(x, t, kappa, L):
         # the exact solution
         y = np.exp(-kappa * (pi ** 2 / L ** 2) * t) * np.sin(pi * x / L) + 1 + (2 - 1) * x / L
         return y
@@ -753,10 +755,10 @@ def value_tests():
     Compares with increasing tolerance until it is close enough or doesnt match with a tol of 0.1
     """
     x, non_homog_forward_eul_sol = solve_diffusive_pde('forward', kappa, L, T, mx, mt, 'dirichlet', non_homog_l,
-                                                     non_homog_r, heat_1D_initial, ic_args=L)
+                                                       non_homog_r, heat_1D_initial, ic_args=L)
 
     # gets exact solution
-    non_homog_true = non_homog_exact(x, T,kappa,L)
+    non_homog_true = non_homog_exact(x, T, kappa, L)
 
     # iterates through tol = 10^-10 to 0.1
     match = False
@@ -776,10 +778,10 @@ def value_tests():
     Compares with increasing tolerance until it is close enough or doesnt match with a tol of 0.1.
     """
     x, non_homog_backward_eul_sol = solve_diffusive_pde('backward', kappa, L, T, mx, mt, 'dirichlet', non_homog_l,
-                                                      non_homog_r, heat_1D_initial, ic_args=L)
+                                                        non_homog_r, heat_1D_initial, ic_args=L)
 
     # gets exact solution
-    non_homog_true = non_homog_exact(x, T,kappa,L)
+    non_homog_true = non_homog_exact(x, T, kappa, L)
 
     # iterates through tol = 10^-10 to 0.1
     match = False
@@ -799,9 +801,9 @@ def value_tests():
     Compares with increasing tolerance until it is close enough or doesnt match with a tol of 0.1.
     """
     x, non_homog_crank_sol = solve_diffusive_pde('crank', kappa, L, T, mx, mt, 'dirichlet', non_homog_l,
-                                                   non_homog_r, heat_1D_initial, ic_args=L)
+                                                 non_homog_r, heat_1D_initial, ic_args=L)
     # gets exact solution
-    non_homog_true = non_homog_exact(x, T,kappa,L)
+    non_homog_true = non_homog_exact(x, T, kappa, L)
 
     # iterates through tol = 10^-10 to 0.1
     match = False
@@ -831,10 +833,10 @@ def value_tests():
     Expected to fail as forward Euler is unstable for k > 1/2
     """
     x, non_homog_forward_eul_sol = solve_diffusive_pde('forward', kappa, L, T, mx, mt, 'dirichlet', non_homog_l,
-                                                     non_homog_r, heat_1D_initial, ic_args=L)
+                                                       non_homog_r, heat_1D_initial, ic_args=L)
 
     # gets exact solution
-    non_homog_true = non_homog_exact(x, T,kappa,L)
+    non_homog_true = non_homog_exact(x, T, kappa, L)
 
     # iterates through tol = 10^-10 to 0.1
     match = False
@@ -854,10 +856,10 @@ def value_tests():
     Compares with increasing tolerance until it is close enough or doesnt match with a tol of 0.1.
     """
     x, non_homog_backward_eul_sol = solve_diffusive_pde('backward', kappa, L, T, mx, mt, 'dirichlet', non_homog_l,
-                                                      non_homog_r, heat_1D_initial, ic_args=L)
+                                                        non_homog_r, heat_1D_initial, ic_args=L)
 
     # gets exact solution
-    non_homog_true = non_homog_exact(x, T,kappa,L)
+    non_homog_true = non_homog_exact(x, T, kappa, L)
 
     # iterates through tol = 10^-10 to 0.1
     match = False
@@ -877,9 +879,9 @@ def value_tests():
     Compares with increasing tolerance until it is close enough or doesnt match with a tol of 0.1.
     """
     x, non_homog_crank_sol = solve_diffusive_pde('crank', kappa, L, T, mx, mt, 'dirichlet', non_homog_l,
-                                                   non_homog_r, heat_1D_initial, ic_args=L)
+                                                 non_homog_r, heat_1D_initial, ic_args=L)
     # gets exact solution
-    non_homog_true = non_homog_exact(x, T,kappa,L)
+    non_homog_true = non_homog_exact(x, T, kappa, L)
 
     # iterates through tol = 10^-20 to 0.1
     match = False

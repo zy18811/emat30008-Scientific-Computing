@@ -1,6 +1,7 @@
+from math import pi
 from multiprocessing import Pool, cpu_count
 from timeit import default_timer as timer
-from math import pi
+
 import matplotlib.pyplot as plt
 import numpy as np
 from tqdm import tqdm
@@ -180,7 +181,7 @@ def main():
         """
         Function defining system of  ODEs dxdt = y, dy/dt = -x
         :param t: t value
-        :param x: x value
+        :param u: array [x, y]
         :return: returns value of dxdt and dy/dt at (t,u)
         """
         x = u[0]
@@ -206,7 +207,7 @@ def main():
     """
     True values
     """
-    true = d2xdt2_equals_minus_x_true(np.linspace(0,2*pi,100))
+    true = d2xdt2_equals_minus_x_true(np.linspace(0, 2 * pi, 100))
     true_x = true[0]
     true_y = true[1]
 

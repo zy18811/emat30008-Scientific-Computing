@@ -1,5 +1,6 @@
 import numpy as np
 from scipy.optimize import fsolve
+
 from newtonrhapson import newton
 from periodfinderforcheck import manual_period_finder
 from shooting import orbit_shooting

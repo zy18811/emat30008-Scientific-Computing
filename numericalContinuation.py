@@ -1,12 +1,13 @@
 import warnings
 from math import pi
-from shooting import shootingG
-import scipy
+
 import matplotlib.pyplot as plt
 import numpy as np
+import scipy
 from scipy.optimize import fsolve, root
 from tqdm import tqdm
 
+from shooting import shootingG
 from solve_ode import integer_float_array_input_check
 from solve_pde import solve_diffusive_pde
 
@@ -335,15 +336,16 @@ if __name__ == '__main__':
     """
     Pseudo-arclength continuation - varying c from -2 to 2
     """
-    par_list_ps,x_ps = continuation('pseudo',cubic,np.array([1,1,1]),[2],0,[-2,2],200,lambda x:x,fsolve,None)
+    par_list_ps, x_ps = continuation('pseudo', cubic, np.array([1, 1, 1]), [2], 0, [-2, 2], 200, lambda x: x, fsolve,
+                                     None)
 
     """
     Plotting c against ||x|| for both continuation methods
     """
-    norm_x_nat = scipy.linalg.norm(x_nat, axis = 1, keepdims = True)
-    norm_x_ps = scipy.linalg.norm(x_ps, axis = 1, keepdims = True)
-    plt.plot(par_list_nat, norm_x_nat[:, 0],label = 'Nat. Param.')
-    plt.plot(par_list_ps, norm_x_ps[:, 0],label = 'Pseudo-arclength')
+    norm_x_nat = scipy.linalg.norm(x_nat, axis=1, keepdims=True)
+    norm_x_ps = scipy.linalg.norm(x_ps, axis=1, keepdims=True)
+    plt.plot(par_list_nat, norm_x_nat[:, 0], label='Nat. Param.')
+    plt.plot(par_list_ps, norm_x_ps[:, 0], label='Pseudo-arclength')
     plt.xlabel('c')
     plt.ylabel('||x||')
     plt.legend()
@@ -361,6 +363,8 @@ if __name__ == '__main__':
     """
     function for hopf normal form 
     """
+
+
     def hopfNormal(t, u, args):
         beta = args[0]
         sigma = args[1]
@@ -372,12 +376,16 @@ if __name__ == '__main__':
         du2dt = u1 + beta * u2 + sigma * u2 * (u1 ** 2 + u2 ** 2)
         return np.array([du1dt, du2dt])
 
+
     """
     Phase condition for hopf normal form
     """
+
+
     def pcHopfNormal(u0, args):
         p = hopfNormal(1, u0, args)[0]
         return p
+
 
     """
     initial values for hopf normal form
@@ -401,8 +409,8 @@ if __name__ == '__main__':
     Plotting beta against ||x|| for both continuation methods
     """
     # excluding T from x
-    norm_x_nat = scipy.linalg.norm(x_nat[:,:-1], axis=1, keepdims=True)
-    norm_x_ps = scipy.linalg.norm(x_ps[:,:-1], axis=1, keepdims=True)
+    norm_x_nat = scipy.linalg.norm(x_nat[:, :-1], axis=1, keepdims=True)
+    norm_x_ps = scipy.linalg.norm(x_ps[:, :-1], axis=1, keepdims=True)
     plt.plot(par_list_nat, norm_x_nat[:, 0], label='Nat. Param.')
     plt.plot(par_list_ps, norm_x_ps[:, 0], label='Pseudo-arclength')
     plt.xlabel('beta')
@@ -423,6 +431,8 @@ if __name__ == '__main__':
     """
     function for modified hopf normal
     """
+
+
     def modHopfNormal(t, u, args):
         beta = args[0]
 
@@ -433,12 +443,16 @@ if __name__ == '__main__':
         du2dt = u1 + beta * u2 + u2 * (u1 ** 2 + u2 ** 2) - u2 * (u1 ** 2 + u2 ** 2) ** 2
         return np.array([du1dt, du2dt])
 
+
     """
     phase condition for modified hopf normal
     """
+
+
     def pcModHopfNormal(u0, args):
         p = modHopfNormal(1, u0, args)[0]
         return p
+
 
     """
     using same u0 as hopf normal
@@ -460,8 +474,8 @@ if __name__ == '__main__':
     Plotting beta against ||x|| for both continuation methods
     """
     # excluding T from x
-    norm_x_nat = scipy.linalg.norm(x_nat[:,:-1], axis=1, keepdims=True)
-    norm_x_ps = scipy.linalg.norm(x_ps[:,:-1], axis=1, keepdims=True)
+    norm_x_nat = scipy.linalg.norm(x_nat[:, :-1], axis=1, keepdims=True)
+    norm_x_ps = scipy.linalg.norm(x_ps[:, :-1], axis=1, keepdims=True)
     plt.plot(par_list_nat, norm_x_nat[:, 0], label='Nat. Param.')
     plt.plot(par_list_ps, norm_x_ps[:, 0], label='Pseudo-arclength')
     plt.xlabel('beta')

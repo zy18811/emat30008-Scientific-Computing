@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 from scipy.optimize import fsolve
+
 from periodfinderforcheck import manual_period_finder
 from solve_ode import solve_ode, integer_float_array_input_check
 

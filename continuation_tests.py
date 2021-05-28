@@ -2,7 +2,7 @@ import numpy as np
 from scipy.optimize import fsolve
 
 from numericalContinuation import continuation
-from shooting import shootingG, orbit_shooting
+from shooting import shootingG
 
 """
 tests for the continuation() function
