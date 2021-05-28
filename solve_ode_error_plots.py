@@ -202,7 +202,7 @@ def main():
         y = np.cos(t) - np.sin(t)
         return np.array([x, y])
 
-    t = np.linspace(0, 1000, 1000)
+    t = np.linspace(0, 5000, 5000)
 
     """
     True values
@@ -228,9 +228,10 @@ def main():
     """
     Plotting
     """
-    plt.plot(euler_sol_x, euler_sol_y, label='Euler')
-    plt.plot(rk4_sol_x, rk4_sol_y, label='RK4')
-    plt.plot(true_x, true_y, label='True')
+
+    plt.plot(euler_sol_x, euler_sol_y, label='Euler', alpha=0.5)
+    plt.plot(rk4_sol_x, rk4_sol_y, label='RK4', alpha=0.5)
+    plt.plot(true_x, true_y, c='r', linewidth=2, label='True')
     plt.legend()
     plt.xlabel('x')
     plt.ylabel('dx/dt')
